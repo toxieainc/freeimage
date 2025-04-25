@@ -1,0 +1,63 @@
+name: freeimage
+on:
+  push:
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build freeimage-${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, platform: win, arch: x64 }
+          - { os: windows-latest, platform: win, arch: x86 }
+          - { os: macos-latest, platform: macos, arch: arm64 }
+          - { os: macos-latest, platform: macos, arch: x64 }
+          - { os: ubuntu-latest, platform: linux, arch: x64 }
+          - { os: ubuntu-24.04-arm, platform: linux, arch: aarch64 }
+          - { os: ubuntu-latest, platform: android, arch: arm64-v8a }
+          - { os: macos-latest, platform: ios, arch: arm64 }
+          - { os: macos-latest, platform: ios-simulator, arch: arm64 }
+          - { os: macos-latest, platform: tvos, arch: arm64 }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build freeimage-${{ matrix.platform }}-${{ matrix.arch }}
+        run: |
+          if [[ "${{ matrix.platform }}" == "win" ]]; then
+             if [[ "${{ matrix.arch }}" == "x64" ]]; then
+                cmake \
+                   -G "Visual Studio 17 2022" \
+                   -DPLATFORM=${{ matrix.platform }} \
+                   -DARCH=${{ matrix.arch }} \
+                   -DBUILD_SHARED=OFF \
+                   -B build
+             elif [[ "${{ matrix.arch }}" == "x86" ]]; then
+                cmake \
+                   -G "Visual Studio 17 2022" \
+                   -A Win32 \
+                   -DPLATFORM=${{ matrix.platform }} \
+                   -DARCH=${{ matrix.arch }} \
+                   -DBUILD_SHARED=OFF \
+                   -B build
+             fi
+             cmake --build build --config Release
+          else
+             if [[ "$(uname)" == "Darwin" ]]; then
+                NUM_PROCS=$(sysctl -n hw.ncpu)
+             else
+                NUM_PROCS=$(nproc)
+             fi
+             cmake \
+                -DPLATFORM=${{ matrix.platform }} \
+                -DARCH=${{ matrix.arch }} \
+                -DBUILD_SHARED=OFF \
+                -DCMAKE_BUILD_TYPE=Release \
+                -B build
+             cmake --build build -- -j${NUM_PROCS}
+          fi
