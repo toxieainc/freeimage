@@ -687,7 +687,7 @@ if(BUILD_SHARED)
       LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
    )
 
-   install(FILES source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+   install(FILES Source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 endif()
 
 if(BUILD_STATIC)
@@ -709,5 +709,5 @@ if(BUILD_STATIC)
       LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
    )
 
-   install(FILES source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+   install(FILES Source/FreeImage.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 endif()
