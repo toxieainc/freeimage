@@ -952,7 +952,7 @@
 	Remove redundant (size_t) casts in tmsize_t allocation expressions.
 	When the count operand is already unsigned (uint16_t, uint32_t,
 	uint64_t), the intermediate (size_t) cast in expressions like
-	(tmsize_t)((size_t)count * sizeof(T)) is redundant â€” the
+	(tmsize_t)((size_t)count * sizeof(T)) is redundant — the
 	multiplication with sizeof (which returns size_t) already promotes
 	the unsigned count via the usual arithmetic conversions.
 
@@ -983,7 +983,7 @@
 	test: Fix -Wdouble-promotion and operator precedence warnings in test_write_read_tags.c
 	Add (double) casts on float arguments to printf and in float-to-double
 	arithmetic. Fix operator precedence in (short)(i + 1) * 7 which casts
-	before multiplying â€” should be (short)((i + 1) * 7).
+	before multiplying — should be (short)((i + 1) * 7).
 
 	test: Fix -Wdouble-promotion warnings in rational_precision2double.c.
 	Add explicit (double) casts on float arguments passed to variadic
@@ -1125,7 +1125,7 @@
 
 	See merge request libtiff/libtiff!855
 
-	FixesÂ #802
+	Fixes #802
 
 2026-03-29  Even Rouault  <even.rouault@spatialys.com>
 
@@ -2776,26 +2776,26 @@
 	```
 	$ hyperfine --warmup 2 -- "gdal raster convert hillshade_predict.tif foo --of mem -q"
 	Benchmark #1: gdal raster convert hillshade_predict.tif foo --of mem -q
-	  Time (mean Â± Ïƒ):     512.1 ms Â±   2.0 ms    [User: 413.1 ms, System: 98.3 ms]
-	  Range (min â€¦ max):   509.6 ms â€¦ 516.4 ms
+	  Time (mean ± σ):     512.1 ms ±   2.0 ms    [User: 413.1 ms, System: 98.3 ms]
+	  Range (min … max):   509.6 ms … 516.4 ms
 
 	$ hyperfine --warmup 2 --  "gdal raster convert USGS_1M_10_x56y512_WA_FEMAHQ_2018_D18.tif foo --of mem"
 	Benchmark #1: gdal raster convert USGS_1M_10_x56y512_WA_FEMAHQ_2018_D18.tif foo --of mem
-	  Time (mean Â± Ïƒ):      2.126 s Â±  0.027 s    [User: 1.844 s, System: 0.280 s]
-	  Range (min â€¦ max):    2.098 s â€¦  2.194 s
+	  Time (mean ± σ):      2.126 s ±  0.027 s    [User: 1.844 s, System: 0.280 s]
+	  Range (min … max):    2.098 s …  2.194 s
 	```
 
 	this PR:
 	```
 	$ hyperfine --warmup 2 -- "gdal raster convert hillshade_predict.tif foo --of mem"
 	Benchmark #1: gdal raster convert hillshade_predict.tif foo --of mem
-	  Time (mean Â± Ïƒ):     384.3 ms Â±   1.9 ms    [User: 285.1 ms, System: 98.3 ms]
-	  Range (min â€¦ max):   381.6 ms â€¦ 387.4 ms
+	  Time (mean ± σ):     384.3 ms ±   1.9 ms    [User: 285.1 ms, System: 98.3 ms]
+	  Range (min … max):   381.6 ms … 387.4 ms
 
 	$ hyperfine --warmup 2 --  "gdal raster convert USGS_1M_10_x56y512_WA_FEMAHQ_2018_D18.tif foo --of mem"
 	Benchmark #1: gdal raster convert USGS_1M_10_x56y512_WA_FEMAHQ_2018_D18.tif foo --of mem
-	  Time (mean Â± Ïƒ):      1.489 s Â±  0.004 s    [User: 1.201 s, System: 0.286 s]
-	  Range (min â€¦ max):    1.484 s â€¦  1.498 s
+	  Time (mean ± σ):      1.489 s ±  0.004 s    [User: 1.201 s, System: 0.286 s]
+	  Range (min … max):    1.484 s …  1.498 s
 	```
 
 2025-05-22  Even Rouault  <even.rouault@spatialys.com>
@@ -2950,7 +2950,7 @@
 2025-04-14  Even Rouault  <even.rouault@spatialys.com>
 
 	Merge branch 'fix_issue_5_write_buffer_overwriting_compression_with_prediction' into 'master'
-	tif_predict.c: Donâ€™t overwrite input buffer of TIFFWriteScanline() if prediction.
+	tif_predict.c: Don’t overwrite input buffer of TIFFWriteScanline() if prediction.
 
 	Closes #5
 
@@ -2958,7 +2958,7 @@
 
 2025-04-13  Su_Laus  <sulau@freenet.de>
 
-	tif_predict.c: Donâ€™t overwrite input buffer of TIFFWriteScanline() if "prediction" is enabled. Use extra working buffer in PredictorEncodeRow().
+	tif_predict.c: Don’t overwrite input buffer of TIFFWriteScanline() if "prediction" is enabled. Use extra working buffer in PredictorEncodeRow().
 	Closes #5
 
 2025-04-11  Even Rouault  <even.rouault@spatialys.com>
@@ -3372,7 +3372,7 @@
 
 	See merge request libtiff/libtiff!678
 
-2024-12-04  æ¦†æŸ³æ¾  <wzhengsen@gmail.com>
+2024-12-04  榆柳松  <wzhengsen@gmail.com>
 
 	CMake CMP0074 new policy.
 
@@ -3406,7 +3406,7 @@
 
 	See merge request libtiff/libtiff!676
 
-2024-11-30  æ¦†æŸ³æ¾  <wzhengsen@gmail.com>
+2024-11-30  榆柳松  <wzhengsen@gmail.com>
 
 	Rename cxx to tiff-cxx,avoid overly mundane names.
 
@@ -3974,11 +3974,11 @@
 
 	See merge request libtiff/libtiff!635
 
-2024-06-24  KÃ©vin Dunglas  <kevin@dunglas.fr>
+2024-06-24  Kévin Dunglas  <kevin@dunglas.fr>
 
 	fix: error when running make clean.
 
-2024-06-15  Niklas HambÃ¼chen  <mail@nh2.me>
+2024-06-15  Niklas Hambüchen  <mail@nh2.me>
 
 	libtiff-4.pc: Fix `Requires.private` missing `Lerc`.
 	It provides a `.pc` file starting from version 4 in:
@@ -4039,7 +4039,7 @@
 
 	See merge request libtiff/libtiff!564
 
-2024-05-29  CaolÃ¡n McNamara  <caolanm@gmail.com>
+2024-05-29  Caolán McNamara  <caolanm@gmail.com>
 
 	TIFFScanlineSize64(): fix computation in non-JPEG YCbCr case (#564)
 	Fixes https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=65182
@@ -4752,7 +4752,7 @@
 
 	See merge request libtiff/libtiff!544
 
-2024-01-30  Timo StÃ¼ber  <omit66@gmail.com>
+2024-01-30  Timo Stüber  <omit66@gmail.com>
 
 	Setting the TIFFFieldInfo field `set_field_type` should consider `field_writecount` not `field_readcount`
 	In most of the cases the field_writecount and field_readcount of the TIFFFieldInfo are equal. But they do not have to be the same.
@@ -5099,7 +5099,7 @@
 	tiffcp: Setting the correct photometric interpretation for the output image when converting JPEG-YCBCR to JPEG-RGB images.
 	Closes #571
 
-2023-09-28  MiloÅ¡ KomarÄeviÄ‡  <miloskomarcevic@aim.com>
+2023-09-28  Miloš Komarčević  <miloskomarcevic@aim.com>
 
 	CMake: move libdeflate and Lerc to Requires.private.
 
@@ -5110,7 +5110,7 @@
 
 	See merge request libtiff/libtiff!537
 
-2023-09-27  MiloÅ¡ KomarÄeviÄ‡  <miloskomarcevic@aim.com>
+2023-09-27  Miloš Komarčević  <miloskomarcevic@aim.com>
 
 	CMake: enable resource compilation on all Windows.
 
