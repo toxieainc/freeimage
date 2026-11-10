@@ -67,7 +67,7 @@ MODULES := $(MODULES:.cpp=.o)
 RESOURCE = $(RCFILE:.rc=.coff)
 CFLAGS ?= -O3 -fexceptions -DNDEBUG -DDISABLE_PERF_MEASUREMENT $(WIN32_CFLAGS)
 CFLAGS += $(INCLUDE)
-CXXFLAGS ?= -O3 -fexceptions -Wno-ctor-dtor-privacy -DNDEBUG $(WIN32_CXXFLAGS)
+CXXFLAGS ?= -std=gnu++17 -O3 -fexceptions -Wno-ctor-dtor-privacy -DNDEBUG $(WIN32_CXXFLAGS)
 CXXFLAGS += $(INCLUDE)
 RCFLAGS ?= -DNDEBUG
 LDFLAGS ?= -s -shared -static -Wl,-soname,$(SOLIBNAME) $(WIN32_LDFLAGS)

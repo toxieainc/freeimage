@@ -6,12 +6,16 @@ What's New for FreeImage
 + : added
 
 Month day, 2023 - 3.19.0
-! FreeImage now uses ZLib 1.2.13
-! FreeImage now uses LibPNG 1.6.39
-! FreeImage now uses Libtiff 4.6.0 (GIT patch 2024-04-14)
-! FreeImage now uses LibWebP 1.2.1 (GIT patch 2021-10-29)
-! FreeImage now uses LibRaw 0.21.1 (GIT patch 2023-05-13)
-! FreeImage now uses LibJPEG 9d
+! FreeImage now uses ZLib 1.4
+! FreeImage now uses LibPNG 1.6.59
+! FreeImage now uses LibTIFF 4.7.2
+! FreeImage now uses LibWebP 1.6.0 (fixes CVE-2023-4863)
+! FreeImage now uses LibRaw 0.22.3
+! FreeImage now uses LibJPEG 10
+! FreeImage now uses OpenJPEG 2.5.4
+! FreeImage now uses OpenEXR 3.3.16 with Imath 3.2.3, OpenEXRCore and libdeflate 1.25 (C++17 is required to build OpenEXR)
+! VS 2017 project files now use the v141_xp toolset (Windows XP compatible) for all configurations
+! CMake and GNU makefiles now build with C++17 and link with pthreads on non-Windows platforms
 ! FreeImage now uses LibJXR 1.2 (fixed FreeImage version)
 ! FreeImage no longer support a 32-bit DLL or Lib version
 - [Herve Drolon] removed VS 2013 project files : this IDE is no longer supported because of its outdated C++ compiler
@@ -41,6 +45,33 @@ Month day, 2023 - 3.19.0
 * [Patrick Pelletier] fixed FreeImage_Paste behavior with very large images
 * [Aleks] fixed FreeImage_SeekMemory behavior with 64-bit malicious images
 * [Herve Drolon] fixed C++11 warnings
+* [FreeImageRe] fixed BMP plugin against malicious images (CVE-2023-47994)
+* fixed BMP plugin rejecting BITMAPV2/V3/V4/V5 and OS/2 2.x info headers
+* fixed BMP plugin failing to load valid 8-bit RLE images whose last line ends with an end-of-line code
+* [FreeImageRe] fixed Targa plugin against malicious images (CVE-2024-28581)
+* [FreeImageRe] fixed TIFF plugin against malicious images (CVE-2021-40266, CVE-2023-47997, CVE-2024-28566, CVE-2024-28567)
+* [FreeImageRe] fixed TIFF IPTC profile reading and writing: the RichTIFFIPTC length is a byte count (CVE-2024-28568, CVE-2024-9029)
+* [FreeImageRe] fixed Exif reader against malicious images (CVE-2021-33367, CVE-2023-47993, CVE-2023-47996, CVE-2024-28570, CVE-2024-28572, CVE-2024-28573, CVE-2024-28577)
+* fixed Exif thumbnails no longer being read
+* [FreeImageRe] fixed IPTC reader against malicious images (CVE-2024-9029, CVE-2024-28568)
+* [FreeImageRe] fixed FreeImage_CloneTag with tags having a length but no value (CVE-2021-40264)
+* [FreeImageRe] fixed PSD plugin against malicious images (CVE-2020-24293, CVE-2020-24294, CVE-2020-24295)
+* [FreeImageRe] fixed ICO plugin against malicious images (CVE-2020-24292)
+* [FreeImageRe] fixed HDR plugin against malicious images (CVE-2024-28579, CVE-2024-28582)
+* fixed HDR plugin returning an already unloaded bitmap after a loading error
+* [FreeImageRe] fixed RAS plugin against malicious images (CVE-2024-28578, CVE-2024-28580)
+* fixed RAS plugin rejecting images with a full colormap
+* [FreeImageRe] fixed XBM plugin against malicious images (CVE-2024-28583)
+* [FreeImageRe] fixed XPM plugin against malicious images (CVE-2024-31570)
+* [FreeImageRe] fixed PFM plugin against malicious images (CVE-2020-22524)
+* [FreeImageRe] fixed DDS plugin against malicious images (CVE-2020-21428)
+* [FreeImageRe] fixed JPEG plugin against malicious images (CVE-2023-47995)
+* [FreeImageRe] fixed LibJXR metadata reading against malicious images (CVE-2019-12212)
+* [FreeImageRe] fixed a double free in the JXR plugin when reading metadata fails
+* [FreeImageRe] fixed possible integer overflows in WuQuantizer, tone mapping operators, BSplineRotate, XTIFF and the EXR plugin
+* [FreeImageRe] fixed memory leaks on realloc failures in MNGHelper
+* [FreeImageRe] fixed use of an out-of-scope color in FreeImage_FillBackground
+* fixed OpenEXRCore: no longer requires Windows 8 (CreateFile2), builds with the Windows XP toolsets
 
 July 31st, 2018 - 3.18.0
 ! FreeImage now uses ZLib 1.2.11

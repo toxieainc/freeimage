@@ -12,17 +12,22 @@
 //
 // C++ namespace configuration / options
 
-//
-// Current internal library namepace name
-//
-#define IEX_INTERNAL_NAMESPACE_CUSTOM 0
-#define IEX_INTERNAL_NAMESPACE Iex_3_1
+// automated formatting does not handle the cmake tags well
+// clang-format off
 
 //
-// Current public user namepace name
+// Current internal library namespace name
+//
+#define IEX_INTERNAL_NAMESPACE_CUSTOM 0
+#define IEX_INTERNAL_NAMESPACE Iex_3_3
+
+//
+// Current public user namespace name
 //
 
 #define IEX_NAMESPACE_CUSTOM 0
 #define IEX_NAMESPACE Iex
+
+// clang-format on
 
 #endif // INCLUDED_IEX_CONFIG_H

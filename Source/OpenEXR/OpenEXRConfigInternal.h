@@ -15,6 +15,9 @@
 // used by any OpenEXR library or application code.
 //
 
+// automated formatting does not handle the cmake tags well
+// clang-format off
+
 /* #undef OPENEXR_IMF_HAVE_LINUX_PROCFS */
 
 //
@@ -43,5 +46,14 @@
 //
 
 /* #undef OPENEXR_IMF_HAVE_GCC_INLINE_ASM_AVX */
+
+//
+// Define if we need to shim in our own implementation of vld1q_f32_x2 for
+// older compilers that are missing x2 Neon intrinsics on aarch64
+//
+
+/* #undef OPENEXR_MISSING_ARM_VLD1 */
+
+// clang-format on
 
 #endif // INCLUDED_OPENEXR_INTERNAL_CONFIG_H

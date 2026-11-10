@@ -19,7 +19,7 @@ LIBRARIES = -lstdc++
 MODULES = $(SRCS:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-CXXFLAGS = $(COMPILERFLAGS)  -Wno-ctor-dtor-privacy $(INCLUDE)
+CXXFLAGS = $(COMPILERFLAGS) -std=gnu++17 -Wno-ctor-dtor-privacy $(INCLUDE)
 
 TARGET  = freeimage
 STATICLIB = lib$(TARGET).a

@@ -51,16 +51,19 @@ static int s_format_id;
 
 /**
 FreeImage input stream wrapper
-@see Imf_2_2::IStream
+Positions are relative to the stream position at construction time: since OpenEXR 3.3,
+InputFile reads through OpenEXRCore, which always starts parsing at offset 0.
+@see Imf::IStream
 */
 class C_IStream : public Imf::IStream {
 private:
     FreeImageIO *_io;
 	fi_handle _handle;
+	long _start;
 
 public:
 	C_IStream (FreeImageIO *io, fi_handle handle) : 
-	  Imf::IStream(""), _io (io), _handle(handle) {
+	  Imf::IStream(""), _io (io), _handle(handle), _start(io->tell_proc(handle)) {
 	}
 
 	virtual bool read (char c[/*n*/], int n) {
@@ -68,11 +71,11 @@ public:
 	}
 
 	virtual uint64_t tellg() {
-		return _io->tell_proc(_handle);
+		return (uint64_t)(_io->tell_proc(_handle) - _start);
 	}
 
 	virtual void seekg(uint64_t pos) {
-		_io->seek_proc(_handle, (unsigned)pos, SEEK_SET);
+		_io->seek_proc(_handle, (long)(_start + pos), SEEK_SET);
 	}
 
 	virtual void clear() {
@@ -83,16 +86,19 @@ public:
 
 /**
 FreeImage output stream wrapper
-@see Imf_2_2::OStream
+Positions are relative to the stream position at construction time, so that the
+chunk offsets written to the file are relative to the start of the EXR data.
+@see Imf::OStream
 */
 class C_OStream : public Imf::OStream {
 private:
     FreeImageIO *_io;
 	fi_handle _handle;
+	long _start;
 
 public:
 	C_OStream (FreeImageIO *io, fi_handle handle) : 
-	  Imf::OStream(""), _io (io), _handle(handle) {
+	  Imf::OStream(""), _io (io), _handle(handle), _start(io->tell_proc(handle)) {
 	}
 
 	virtual void write(const char c[/*n*/], int n) {
@@ -102,11 +108,11 @@ public:
 	}
 
 	virtual uint64_t tellp() {
-		return _io->tell_proc(_handle);
+		return (uint64_t)(_io->tell_proc(_handle) - _start);
 	}
 
 	virtual void seekp(uint64_t pos) {
-		_io->seek_proc(_handle, (unsigned)pos, SEEK_SET);
+		_io->seek_proc(_handle, (long)(_start + pos), SEEK_SET);
 	}
 };
 
@@ -674,19 +680,19 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		BYTE *bits = NULL;	// pointer to our pixel buffer
 		size_t bytespp = 0;	// size of our pixel in bytes
 		size_t bytespc = 0;	// size of our pixel component in bytes
-		unsigned pitch = 0;	// size of our yStride in bytes
+		size_t pitch = 0;	// size of our yStride in bytes
 
 
 		if(pixelType == Imf::HALF) {
 			// convert from float to half
-			halfData = new(std::nothrow) half[width * height * components];
+			halfData = new(std::nothrow) half[width * static_cast<size_t>(components) * height];
 			if(!halfData) {
 				THROW (Iex::NullExc, FI_MSG_ERROR_MEMORY);
 			}
 
 			for(int y = 0; y < height; y++) {
 				float *src_bits = (float*)FreeImage_GetScanLine(dib, height - 1 - y);
-				half *dst_bits = halfData + y * width * components;
+				half *dst_bits = halfData + width * static_cast<size_t>(components) * y;
 				for(int x = 0; x < width; x++) {
 					for(int c = 0; c < components; c++) {
 						dst_bits[c] = src_bits[c];
@@ -698,7 +704,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 			bits = (BYTE*)halfData;
 			bytespc = sizeof(half);
 			bytespp = sizeof(half) * components;
-			pitch = sizeof(half) * width * components;
+			pitch = width * sizeof(half) * components;
 		} else if(pixelType == Imf::FLOAT) {
 			// invert dib scanlines
 			bIsFlipped = FreeImage_FlipVertical(dib);

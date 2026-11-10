@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<!-- Copyright (c) Contributors to the OpenEXR Project -->
+
 # Contributing to OpenEXR
 
 Thank you for your interest in contributing to OpenEXR. This document
@@ -8,15 +11,17 @@ explains our contribution process and procedures:
 * [Development Workflow](#Development-Workflow)
 * [Coding Style](#Coding-Style)
 * [Versioning Policy](#Versioning-Policy)
-* [Creating a Release](#Creating-a-Release)
+* [Contributing to the Website](#Contributing-to-the-Website)
+* [Creating a Patch Release](#Creating-a-Patch-Release)
+* [Creating a Major/Minor Release](#Creating-a-Major/Minor-Release)
 
 For a description of the roles and responsibilities of the various
 members of the OpenEXR community, see [GOVERNANCE](GOVERNANCE.md), and
-for further details, see the project's [Technical
+for further details, see the OpenEXR project's [Technical
 Charter](ASWF/charter/OpenEXR-Technical-Charter.md). Briefly,
-Contributors are anyone who submits content to the project, Committers
-review and approve such submissions, and the Technical Steering
-Committee provides general project oversight.
+a "contributor" is anyone who submits content to the project, a
+"committer" reviews and approves such submissions, and the "Technical
+Steering Committee" provides general project oversight and governance.
 
 ## Getting Information
 
@@ -64,7 +69,7 @@ among the project community.
 ### How to Report a Security Vulnerability
 
 If you think you've found a potential vulnerability in OpenEXR, please
-refer to [SECURITY.md] to responsibly disclose it.
+refer to [SECURITY.md](SECURITY.md) to responsibly disclose it.
 
 ### How to Contribute a Bug Fix or Change
 
@@ -76,7 +81,7 @@ To contribute code to the project, first read over the [GOVERNANCE](GOVERNANCE.m
 
 * An understanding of the project's development workflow.
 
-* Legal authorization, that is, you need to have signed a Contributor
+* Legal authorization, that is, you need to have signed a contributor
   License Agreement. See below for details.
 
 ## Legal Requirements
@@ -121,11 +126,11 @@ comments. Click that link to sign the form.
 
 The downloadable PDF's on the EasyCLA page are provided for reference
 only. To execute the signature, sign the form online through the
-releveant links.
+relevant links.
 
 The OpenEXR CLAs are the standard forms used by Linux Foundation
 projects and [recommended by the ASWF
-TAC](https://github.com/AcademySoftwareFoundation/tac/blob/master/process/contributing.md#contributor-license-agreement-cla).
+TAC](https://github.com/AcademySoftwareFoundation/tac/blob/main/process/contributing.md#contributor-license-agreement-cla).
 
 ### Commit Sign-Off
 
@@ -133,7 +138,7 @@ Every commit must be signed off.  That is, every commit log message
 must include a “`Signed-off-by`” line (generated, for example, with
 “`git commit --signoff`”), indicating that the committer wrote the
 code and has the right to release it under the [BSD-3-Clause](LICENSE.md)
-license. See https://github.com/AcademySoftwareFoundation/tac/blob/master/process/contributing.md#contribution-sign-off for more information on this requirement.
+license. See https://github.com/AcademySoftwareFoundation/tac/blob/main/process/contributing.md#contribution-sign-off for more information on this requirement.
 
 ## Development Workflow
 
@@ -156,21 +161,21 @@ Documentation](https://git-scm.com/doc).
 
 The OpenEXR repository uses a simple branching and merging strategy.
 
-All development work is done directly on the master branch. The master
+All development work is done directly on the ``main`` branch. The ``main``
 branch represents the bleeding-edge of the project and most
 contributions should be done on top of it.
 
-After sufficient work is done on the master branch and the OpenEXR
+After sufficient work is done on the ``main`` branch and the OpenEXR
 leadership determines that a release is due, we will bump the relevant
 internal versioning and tag a commit with the corresponding version
-number, e.g. v2.0.1. Each Minor version also has its own “Release
+number, e.g. v2.0.1. Each minor version also has its own “Release
 Branch”, e.g. RB-1.1. This marks a branch of code dedicated to that
-Major.Minor version, which allows upstream bug fixes to be
-cherry-picked to a given version while still allowing the master
+``major.minor version``, which allows upstream bug fixes to be
+cherry-picked to a given version while still allowing the ``main``
 branch to continue forward onto higher versions. This basic repository
 structure keeps maintenance low, while remaining simple to understand.
 
-To reiterate, the master branch represents the latest development
+To reiterate, the ``main`` branch represents the latest development
 version, so beware that it may include untested features and is not
 generally stable enough for release.  To retrieve a stable version of
 the source code, use one of the release branches.
@@ -187,7 +192,7 @@ remains linear, avoiding the "bubbles" characteristic of the
 [GitFlow](https://www.endoflineblog.com/gitflow-considered-harmful)
 workflow.
 
-### Use the Fork, Luke.
+### Use the Fork, Luke
 
 In a typical workflow, you should **fork** the OpenEXR repository to
 your account. This creates a copy of the repository under your user
@@ -207,9 +212,9 @@ openexr-dev@lists.aswf.io mail list.
 
 ### Pull Requests
 
-Contributions should be submitted as Github pull requests. See
+Contributions should be submitted as GitHub pull requests. See
 [Creating a pull request](https://help.github.com/articles/creating-a-pull-request/)
-if you're unfamiliar with this concept. 
+if you're unfamiliar with this concept.
 
 The development cycle for a code change should follow this protocol:
 
@@ -223,15 +228,15 @@ with a separate pull request.
 
 3. Push commits to your fork.
 
-4. Create a Github pull request from your topic branch.
+4. Create a GitHub pull request from your topic branch.
 
-5. Pull requests will be reviewed by project Committers and Contributors,
+5. Pull requests will be reviewed by project committers and contributors,
 who may discuss, offer constructive feedback, request changes, or approve
 the work.
 
-6. Upon receiving the required number of Committer approvals (as
-outlined in [Required Approvals](#required-approvals)), a Committer
-other than the PR contributor may merge changes into the master
+6. Upon receiving the required number of committer approvals (as
+outlined in [Required Approvals](#required-approvals)), a committer
+other than the PR contributor may merge changes into the ``main``
 branch.
 
 ### Code Review and Required Approvals
@@ -239,9 +244,9 @@ branch.
 Modifications of the contents of the OpenEXR repository are made on a
 collaborative basis. Anyone with a GitHub account may propose a
 modification via pull request and it will be considered by the project
-Committers.
+committers.
 
-Pull requests must meet a minimum number of Committer approvals prior
+Pull requests must meet a minimum number of committer approvals prior
 to being merged. Rather than having a hard rule for all PRs, the
 requirement is based on the complexity and risk of the proposed
 changes, factoring in the length of time the PR has been open to
@@ -250,41 +255,42 @@ approval rules for merging:
 
 * Core design decisions, large new features, or anything that might be
 perceived as changing the overall direction of the project should be
-discussed at length in the mail list before any PR is submitted, in
-order to: solicit feedback, try to get as much consensus as possible,
-and alert all the stakeholders to be on the lookout for the eventual
-PR when it appears.
+discussed at length in the mail list or TSC meetings before any PR is
+submitted, in order to solicit feedback, try to get as much consensus
+as possible, and alert all the stakeholders to be on the lookout for
+the eventual PR when it appears.
 
-* Small changes (bug fixes, docs, tests, cleanups) can be approved and
-merged by a single Committer.
+* Trivial changes that don't affect functionality (typos, tests, website)
+can be approved by the committer without review, after waiting at
+least 48 hours.
 
 * Big changes that can alter behavior, add major features, or present
-a high degree of risk should be signed off by TWO Committers, ideally
+a high degree of risk should be signed off by TWO committers, ideally
 one of whom should be the "owner" for that section of the codebase (if
 a specific owner has been designated). If the person submitting the PR
 is him/herself the "owner" of that section of the codebase, then only
-one additional Committer approval is sufficient. But in either case, a
+one additional committer approval is sufficient. But in either case, a
 48 hour minimum is helpful to give everybody a chance to see it,
 unless it's a critical emergency fix (which would probably put it in
 the previous "small fix" category, rather than a "big feature").
 
 * Escape valve: big changes can nonetheless be merged by a single
-Committer if the PR has been open for over two weeks without any
-unaddressed objections from other Committers. At some point, we have
+committer if the PR has been open for over two weeks without any
+unaddressed objections from other committers. At some point, we have
 to assume that the people who know and care are monitoring the PRs and
 that an extended period without objections is really assent.
 
-Approval must be from Committers who are not authors of the change. If
-one or more Committers oppose a proposed change, then the change
+Approval must be from committers who are not authors of the change. If
+one or more committers oppose a proposed change, then the change
 cannot be accepted unless:
 
-* Discussions and/or additional changes result in no Committers
-objecting to the change. Previously-objecting Committers do not
+* Discussions and/or additional changes result in no committers
+objecting to the change. Previously-objecting committers do not
 necessarily have to sign-off on the change, but they should not be
 opposed to it.
 
 * The change is escalated to the TSC and the TSC votes to approve the
-change.  This should only happen if disagreements between Committers
+change.  This should only happen if disagreements between committers
 cannot be resolved through discussion.
 
 Committers may opt to elevate significant or controversial
@@ -295,77 +301,32 @@ required.
 ### Test Policy
 
 All functionality in the library must be covered by an automated
-test. Each library has a companion ``Test`` project - ``ImathTest``,
-``HalfTest``, ``OpenEXRTest`, etc.  This test suite is collectively
+test. Each library has a companion ``Test`` project, e.g. ``OpenEXRTest``,
+``OpenEXRCoreTest``, ``OpenEXRUtilTest``, etc.  This test suite is collectively
 expected to validate the behavior of very part of the library.
 
-* Any new functionality should be accompanied by a test that validates
+* All new functionality should be accompanied by a test that validates
   its behavior.
 
 * Any change to existing functionality should have tests added if they
   don't already exist.
 
-The test should should be run, via ``make check``, before submitting a
-pull request.
+The test should should be run, via:
+
+    make test
+
+before submitting a pull request.
 
 In addition, the ``OpenEXRFuzzTest`` project validates the library by
 feeding it corrupted input data. This test is time-consuming (possible
 over 24 hours), so it will only be run occasionally, but it must
 succeed before a release is made.
 
-### Project Issue Handling Process
-
-Incoming new issues are labeled promptly by the TSC using GitHub labels. 
-
-The labels include:
-
-* **Autotools** - A problem with the autoconf configuration setup.
-
-* **Bug** - A bug in the source code. Something appears to be
-    functioning improperly: a compile error, a crash, unexpected behavior, etc. 
-
-* **Build/Install Issue** - A problem with building or installing the
-    library: configuration file, external dependency, a compile error
-    with a release version that prevents installation.
-
-* **C++** - A C++ compilation issue: a compiler warning, syntax issue,
-    or language usage or suggested upgrade.
-
-* **CMake** - A build issue with the CMake configuration files.
-
-* **CVE** - A security vulnerability bug.
-
-* **Documentation** - The project documentation: developer or user
-    guide, web site, project policies, etc.
-
-* **Feature Request** - A suggested change or addition of
-    functionality to the library.
-
-* **Mac OS** - A build issue specific to Mac OS.
-
-* **MinGW** - An issue specific to MinGW
-
-* **Modification** - A modification to the code, refactoring or
-    optimization without significant additional behavior
-
-* **Needs Info** - Issue is waiting for more information from the
-    submitter.
-
-* **Question/Problem/Help** - A request for help or further
-    investigation, possibly just user error or misunderstanding.
-
-* **Test Failure** - One of the automated tests is failing, or an
-    analysis tool is reporting problematic behavior.
-
-* **TSC** - To be discussed in the technical steering committee.
-
-* **Windows** - A build issue specific to Windows
-
-* **Won't Fix** - No further action will taken.
-
 ## Coding Style
 
 #### Formatting
+
+The coding style of the library source code is enforced via Clang format, with the configuration defined in [.clang-format](.clang-format).
 
 When modifying existing code, follow the surrounding formatting
 conventions so that new or modified code blends in with the current
@@ -375,7 +336,7 @@ code.
 
 * Function return types go on a separate line:
 
-        const float &	
+        const float &
         Header::pixelAspectRatio () const
         {
             ...
@@ -426,7 +387,7 @@ All headers should contain:
 
 Because OpenEXR must deal properly with large images, whose width
 and/or height approach the maximum allowable in 32-bit signed
-integers, take special care that integer arithmatic doesn't overlow,
+integers, take special care that integer arithmetic doesn't overflow,
 and make it as clear as possible exactly what the code is doing,
 especially in the edge cases.
 
@@ -440,7 +401,7 @@ To clarify the intention, prefer to cast between types using
     x = (size_t) y;
     x = size_t (y);
 
-Prefer to use ``std::numeric_limits<>`` instead of preprocesser
+Prefer to use ``std::numeric_limits<>`` instead of preprocessor
 define's such as ``INT_MAX``:
 
     // good:
@@ -487,37 +448,323 @@ For public APIs, use Doxygen-style comments (start with `///`), such as:
 ## Versioning Policy
 
 OpenEXR uses [semantic versioning](https://semver.org), which labels
-each version with three numbers: Major.Minor.Patch, where:
+each version with three numbers: ``major.minor.patch``, where:
 
-* **MAJOR** indicates incompatible API changes
-* **MINOR** indicates functionality added in a backwards-compatible manner
-* **PATCH** indicates backwards-compatible bug fixes 
+* ``major`` - indicates incompatible API changes
+* ``minor`` - indicates functionality added in a backwards-compatible manner
+* ``patch`` - indicates backwards-compatible bug fixes
 
-## Creating a Release
+## Contributing to the Website
 
-To create a new release from the master branch:
+The https://openexr.com website is generated via
+[Sphinx](https://www.sphinx-doc.org) with the
+[Breathe](https://breathe.readthedocs.io) extension, using the
+[sphinx-press-theme](https://pypi.org/project/sphinx-press-theme), and
+is hosted by
+[readthedocs](https://readthedocs.org/projects/openexr). The website
+source is in [restructured
+text](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html)
+in the ``website`` directory.
 
-1. Update the release notes in ``CHANGES.md``.
+To build the website locally from the source ``.rst`` files, set the
+CMake option ``BUILD_WEBSITE=ON``. This adds the ``website`` CMake
+target. Generation is off by default.
 
-   Write a high-level summary of the features and
-   improvements. Include the summary in ``CHANGES.md`` and also in the
-   Release comments.
+Building the website requires that ``sphinx``, ``breathe``, and
+``doxygen`` are installed. It further requires the [sphinx-press-theme]
+(https://pypi.org/project/sphinx-press-theme). Complete dependencies
+are described in the [requirements.txt](website/requirements.txtg)
+file.
 
-   Include the log of all changes since the last release, via:
+On Debian/Ubuntu Linux:
 
-        git log v2.2.1...v2.3.0 --date=short --pretty=format:"[%s](https://github.com/AcademySoftwareFoundation/openexr/commit/%H) ([%an](@%ae) %ad)"
+.. code-block::
 
-   Include diff status via:
+    % apt-get install doxygen python3-sphinx
+    % pip3 install breathe
+    % pip3 install sphinx_press_theme
+   
+    % mkdir _build
+    % cd _build
+    % cmake .. -DBUILD_WEBSITE=ON
+    % cmake --build . --target website 
 
-        git diff --stat v2.2.1
+### Testing a Website Build
+
+When you have configured cmake with ``BUILD_WEBSITE=ON`` and done a
+build, you should find a file ``website/sphinx/index.html`` in the
+build directory which is the website source. Load this file in a
+browser to preview the resulting website, that is, load
+``file://<build-directory>/website/sphinx/index.html`` into your web
+browser.
+
+Once you submit a PR, a check labeled ``docs/readthedocs.org:openexr``
+will validate the build. Click on the ``Details`` link to
+preview. Also, a link to this preview will be added automatically to
+the PR description.
+
+### Test Images
+
+To contribute a new test image, commit it to the
+[openexr-images](https://github.com/AcademySoftwareFoundation/openexr-images)
+repo, along with an associated ``.jpg`` file for display on the
+website.
+
+The [website/scripts/test_images.py](website/scripts/test_images.py)
+utility processes images from
+[openexr-images](https://github.com/AcademySoftwareFoundation/openexr-images)
+to produce `.rst` files for input to Sphinx. It runs ``exrheader`` on
+the ``.exr`` to generate the image description. It also processes
+``README`` files in the image repo for additional website content,
+useful for describing a collection of images. Once the new image is in
+the ``openexr-images`` repo, run ``website/scripts/test_images.py``,
+then commit the new/modified ``.rst`` files to git and submit a PR.
+
+## Creating a Patch Release
+
+These instructions are for project administrators who have "push"
+access on the GitHub repo.
+
+Making a patch release involves merging changes from the main branch
+into the release branch, since all development takes place on the main
+branch. The process involves these steps:
+
+1. Cherry-pick commits from main to the RB- release branch
+2. Bump the version number
+3. Add release notes to CHANGES.md
+4. Create a "release candidate" tag and announce it publicly
+5. Draft the GitHub release
+6. Create a signed release tag
+7. Publish the release
+8. Add an entry to the website news page
+
+Helper scripts in ``share/util/release/`` automate many of the steps
+in the process.
+
+A patch release *must* be ABI-compatible with preceding minor releases
+and should be validated with an ABI-checker tool such as
+[``abipkgdiff``](https://manpages.ubuntu.com/manpages/lunar/en/man1/abipkgdiff.1.html).
+
+### Labeling PRs for Release
+
+Commits for the patch release are identified via labels on PRs. Create
+a label for the release, beginning with a `v`, as in
+``v3.4.11``. Assign this label to all PRs to be included in the
+release.
+
+If a PR should be merged into more than one release branch, i.e. a fix
+goes into v3.4 and v3.3, simply add multiple labels, one per release.
+
+It's good practice to label _every_ PR to identify what
+release it goes into, even if it's the next minor/major release. That
+helps make sure PRs don't get overlooked.
+
+The `share/util/release/log.py` script prints all PRs in the order
+they were merged, annotated by their release labels.
+
+### Security Issues
+
+When a PR addresses a security vulnerability, mention it in the
+description or comments:
+
+    Addresses CVE-2026-39886
+
+The release scripts will detect this and add an appropriate entry to the
+release notes.
+
+When a PR addresses an OSS-Fuzz issue, mention it by url in the
+description or comments:
+
+    Addresses https://issues.oss-fuzz.com/issues/456158449
+
+The release scripts will detect this and add an appropriate entry to the
+release notes.
+
+### GPG
+
+The signed git tags associated with the release require a [GPG
+key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
+that is
+[registered](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key)
+with your GitHub account and git config.
+
+## Release Workflow
+
+Once all PRs have appropriate release labels, follow these steps, all
+while on the appropriate `RB-` branch:
+
+1. Cherry-pick commits from the main branch to the release branch.
+
+   This prints the SHAs for the commits associated with the
+   labeled PRs. The output will look something like:
+      
+        % python share/util/release/cherry.py v3.4.8
+        git cherry-pick 2e32c6b 3df0122 6155271
+        changes.py v3.4.8 2311 2294 2315
+          
+   Copy/paste the `git cherry-pick` command to the shell.
+
+   If there are conflicts, resolve them and continue.
+
+   If the conflicts are too messy to resolve, consider
+   cherry-picking the commits one at a time. The `cherry.py`
+   script accepts a `--single` option that prints the commits one
+   `git cherry-pick` command per line:
+
+        % python share/util/release/cherry.py --single v3.4.8
+        git cherry-pick 2e32c6b # Bump actions/cache from 5.0.3 to 5.0.4 (#2311)
+        git cherry-pick 3df0122 # Pin pypa/cibuildwheel actions to release sha (#2294)
+        git cherry-pick 6155271 # Force macos cibuildwheel to use Xcode clang (#2315)
+        changes.py v3.4.8 2311 2294 2315
+
+2. Bump the OpenEXR version.
+
+   Edit the number in `src/lib/OpenEXRCore/openexr_version.h`. Commit
+   and push the change.
+
+3. Create an entry in the release notes file `CHANGES.md`.
+
+   The `changes.py` script takes a list of PRs
+   and adds entries in the `CHANGES.md` file:
+        
+        % python share/util/release/changes.py v3.4.8 2311 2294 2315
+
+   This adds the `Merged Pull Requests` and the
+   `Merged Workflow Requests` sections. It also adds a `Security` section
+   that lists the CVEs and OSS-Fuzz issues addressed. 
+   
+   Edit the section by hand to add a summary.
+
+4. Create a `-rc` "release candidate" tag.
+
+   Obviously, build locally and confirm nothing broke in the
+   cherry-picking commits and resolving conflicts.
+   
+   Push the release branch and confirm the CI succeeds before creating
+   the release candidate tag.
+
+   Create the tag with a `-rc` suffix, e.g. `v3.4.12-rc`.
+   
+   The `tag.py` script create a signed tag using the release notes as
+   the tag message:
+
+        % python share/util/release/tag.py v3.4.12-rc
+
+   Adding the release notes as the tag message is good practice.
+
+   Push the tags. This triggers the `python-wheels-publish-test`
+   CI workflow. Confirm it succeeds.
+
+   Run the `candidate.py` script to format a
+   message about the release candidate, formatted in HTML. Pipe the
+   output to a `.html` file:
+   
+        % python share/util/release/candidate.py v3.4.12-rc > v3.4.12.html
+
+   Load the file in a browers to render the formatting, then
+   copy/paste the contents into an email to `openexr-dev@lists.aswf.io`
+   and the `#openexr` Slack channel.
+
+   If any problems arise after tagging the candidate, fix them in
+   subsequent commits and create an
+   additional tag with a number appended:
+   
+        % python share/util/release/tag.py v3.4.12-rc2
+
+5. Draft the GitHub release
+
+        % python share/util/release/draft.py v3.4.12
        
-2. Create a new release on the GitHub Releases page.
+   Verify the notes look correct on the
+   [Releases](https://github.com/AcademySoftwareFoundation/openexr/releases)
+   page and edit as appropriate. Save as a "draft". DO NOT PUBLISH THE
+   RELEASE YET.
 
-3. Tag the release with name beginning with '``v``', e.g. '``v2.3.0``'.
+6. Create a signed release tag
 
-4. Download and sign the release tarball, as described
-[here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases),
+   Assuming you have your PGP key set up, create the release tag at
+   the same commit as the release candidate:
+   
+        % python share/util/release/tag.py v3.4.12
 
-5. Attach the detached ``.asc`` signature file to the GitHub release as a
-binary file.
+7. Publish the release
+
+   Set the GitHub release to correspond to the release tag (the `Tag:
+   Select tag` option), then click the "Publish release" button on the
+   GitHub release draft.
+
+   Monitor the GitHub actions on the
+   `https://github.com/AcademySoftwareFoundation/openexr` repo to
+   ensure everything builds properly. 
+   
+   Update the `release` branch, which should always point to the
+   most recent patch of the most recent minor release, i.e. the most
+   preferred release.
+
+   From a clone of the main repo:
+
+        % git checkout release
+        % git merge RB-3.1
+        % git push
+
+   Publishing the release triggers a post on the `#openexr` Slack
+   channel, but you must manually send an email to
+   `openexr-dev@lists.aswf.io` officially announcing the release.
+
+8. Add an entry to the website news page.
+
+        % python share/util/release/news.py v3.4.12
+
+   This pulls the release notes from `CHANGES.md` and inserts a news
+   item in `website/news.rst` and `website/latest_news_title.rst`.
+
+   Commit this change, and then cherry-pick the commit from the
+   release branch containing the notes and submit the pair as a
+   PR. This pulls the release notes for the patch into the main branch.
+
+## Creating a Major/Minor Release
+
+A major/minor release is created from the main branch, assuming there
+are no changes on ``main`` that should *not* go into the release. We
+don't generally allow experimental changes onto ``main``. Anything
+accepted onto ``main`` should be intended for the next minor/major
+(not _patch_)release.
+
+The overall workflow is similar to a patch release, as described
+above, but it's simpler because there is no cherry-picking of
+commits. The major/minor release is simply a snapshot of ``main``.
+
+To create a new release from the ``main`` branch, start by creating
+the new "release branch", e.g. `RB-3.5` from the tip of `main`. Then
+follow the same instructions above as for a patch release.
+
+Assuming all PRs that have _not_ been merged into a patch release are
+labeled with the new minor release, e.g. `v3.5`, the helper scripts in
+`share/util/release` will automate the various steps in generating the
+release notes, drafting the release, and helping with the various
+announcements. 
+
+In addition to the above:
     
+1. Increment the ``OPENEXR_LIB_SOVERSION`` setting in [CMakeLists.txt](CMakeLists.txt).
+
+   The SO version increases whenever, and only when, the ABI changes
+   in non-backwards-compatible ways. Consistent with the semantic
+   versioning policy, this usually happens at major and minor
+   releases, but never on a patch release.
+
+   Commit this change to the `RB-` branch.
+
+
+2. Confirm that the ``OPENEXR_VERSION_MAJOR``,
+   ``OPENEXR_VERSION_MINOR``, and ``OPENEXR_VERSION_PATCH`` value in
+   [src/lib/OpenEXRCore/openexr_version.h](src/lib/OpenEXRCore/openexr_version.h)
+   are correct on the main branch. The OpenEXR project policy is that
+   the values on the main branch, which is the bleeding edge of
+   development, correspond to the next minor release, with the patch
+   set to 0.
+
+3. Update the ``IMATH_TAG`` setting in
+   [cmake/OpenEXRSetup.cmake](cmake/OpenEXRSetup.cmake) to correspond
+   to the proper Imath release.
+

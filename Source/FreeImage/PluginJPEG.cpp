@@ -1196,6 +1196,12 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			jpeg_read_header(&cinfo, TRUE);
 
+			// reject oversized images (CVE-2023-47995)
+			// JPEG_MAX_DIMENSION is defined in jmorecfg.h (included by jpeglib.h)
+			if((cinfo.image_width > JPEG_MAX_DIMENSION) || (cinfo.image_height > JPEG_MAX_DIMENSION)) {
+				throw FI_MSG_ERROR_DIB_MEMORY;
+			}
+
 			// step 4: set parameters for decompression
 
 			unsigned int scale_denom = 1;		// fraction by which to scale image

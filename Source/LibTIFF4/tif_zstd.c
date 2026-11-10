@@ -146,6 +146,7 @@ static int ZSTDDecode(TIFF *tif, uint8_t *op, tmsize_t occ, uint16_t s)
         zstd_ret = ZSTD_decompressStream(sp->dstream, &out_buffer, &in_buffer);
         if (ZSTD_isError(zstd_ret))
         {
+            memset(op + out_buffer.pos, 0, out_buffer.size - out_buffer.pos);
             TIFFErrorExtR(tif, module, "Error in ZSTD_decompressStream(): %s",
                           ZSTD_getErrorName(zstd_ret));
             return 0;
@@ -155,15 +156,16 @@ static int ZSTDDecode(TIFF *tif, uint8_t *op, tmsize_t occ, uint16_t s)
 
     if (out_buffer.pos < (size_t)occ)
     {
+        memset(op + out_buffer.pos, 0, out_buffer.size - out_buffer.pos);
         TIFFErrorExtR(tif, module,
                       "Not enough data at scanline %lu (short %lu bytes)",
-                      (unsigned long)tif->tif_row,
+                      (unsigned long)tif->tif_dir.td_row,
                       (unsigned long)((size_t)occ - out_buffer.pos));
         return 0;
     }
 
     tif->tif_rawcp += in_buffer.pos;
-    tif->tif_rawcc -= in_buffer.pos;
+    tif->tif_rawcc -= (tmsize_t)in_buffer.pos;
 
     return 1;
 }
@@ -285,7 +287,7 @@ static int ZSTDPostEncode(TIFF *tif)
         }
         if (sp->out_buffer.pos > 0)
         {
-            tif->tif_rawcc = sp->out_buffer.pos;
+            tif->tif_rawcc = (tmsize_t)sp->out_buffer.pos;
             if (!TIFFFlushData1(tif))
                 return 0;
             sp->out_buffer.dst = tif->tif_rawcp;
@@ -361,9 +363,8 @@ static int ZSTDVGetField(TIFF *tif, uint32_t tag, va_list ap)
 }
 
 static const TIFFField ZSTDFields[] = {
-    {TIFFTAG_ZSTD_LEVEL, 0, 0, TIFF_ANY, 0, TIFF_SETGET_INT,
-     TIFF_SETGET_UNDEFINED, FIELD_PSEUDO, TRUE, FALSE, "ZSTD compression_level",
-     NULL},
+    {TIFFTAG_ZSTD_LEVEL, 0, 0, TIFF_ANY, 0, TIFF_SETGET_INT, FIELD_PSEUDO, TRUE,
+     FALSE, "ZSTD compression_level", NULL},
 };
 
 int TIFFInitZSTD(TIFF *tif, int scheme)

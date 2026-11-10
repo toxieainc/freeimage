@@ -232,7 +232,7 @@ public:
 		if (_ptr >= _end) {
 			// need refill
 			_ptr = _begin;
-			_io->read_proc(_ptr, sizeof(BYTE), (unsigned)_size, _handle);	//### EOF - no problem?
+			fill();
 		}
 
 		BYTE result = *_ptr;
@@ -257,7 +257,7 @@ public:
 			_io->seek_proc(_handle, -remaining, SEEK_CUR);
 
 			_ptr = _begin;
-			_io->read_proc(_ptr, sizeof(BYTE), (unsigned)_size, _handle);	//### EOF - no problem?
+			fill();
 		}
 
 		BYTE *result = _ptr;
@@ -265,6 +265,14 @@ public:
 		_ptr += count;
 
 		return result;
+	}
+
+	/// read the next block into the cache, the part behind the end of the file is zeroed
+	void fill() {
+		const unsigned read = _io->read_proc(_begin, sizeof(BYTE), (unsigned)_size, _handle);
+		if (read < _size) {
+			memset(_begin + read, 0, _size - read);
+		}
 	}
 
 private:
@@ -584,9 +592,6 @@ loadRLE(FIBITMAP*& dib, int width, int height, FreeImageIO* io, fi_handle handle
 	BYTE rle;
 	BYTE *line_bits;
 
-	// this is used to guard against writing beyond the end of the image (on corrupted rle block)
-	const BYTE* dib_end = FreeImage_GetScanLine(dib, height);//< one-past-end row
-
 	// Compute the rough size of a line...
 	const long pixels_offset = io->tell_proc(handle);
 	const long remaining_size = (eof - pixels_offset);
@@ -595,12 +600,11 @@ loadRLE(FIBITMAP*& dib, int width, int height, FreeImageIO* io, fi_handle handle
 	}
 	const long sz = (remaining_size / height);
 
-	// ...and allocate cache of this size (yields good results)
-	IOCache cache(io, handle, sz);
+	// ...and allocate cache of this size (yields good results).
+	// The cache has to hold several pixels, as getBytes() requires count < cache size (CVE-2024-28581)
+	IOCache cache(io, handle, MAX((size_t)sz, (size_t)(4 * file_pixel_size)));
 	if(cache.isNull()) {
-		FreeImage_Unload(dib);
-		dib = NULL;
-		return;
+		throw FI_MSG_ERROR_MEMORY;
 	}
 		
 	int x = 0, y = 0;
@@ -616,9 +620,13 @@ loadRLE(FIBITMAP*& dib, int width, int height, FreeImageIO* io, fi_handle handle
 
 		BYTE packet_count = rle + 1;
 
-		//packet_count might be corrupt, test if we are not about to write beyond the last image bit
+		// packet_count might be corrupt, test if we are not about to write beyond the last image bit.
+		// A packet can span several lines and the padding at the end of a dib line is not available for pixels,
+		// therefore the number of pixels left is counted, not the bytes.
 
-		if ((line_bits+x) + packet_count*pixel_size > dib_end) {
+		const size_t pixels_left = (size_t)(height - y) * (size_t)width - (size_t)(x / pixel_size);
+
+		if ((size_t)packet_count > pixels_left) {
 			FreeImage_OutputMessageProc(s_format_id, FI_MSG_ERROR_CORRUPTED);
 			// return what is left from the bitmap
 			return;

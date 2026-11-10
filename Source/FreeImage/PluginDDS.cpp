@@ -613,6 +613,12 @@ LoadRGB(const DDSURFACEDESC2 *desc, FreeImageIO *io, fi_handle handle) {
 	if (dib == NULL) {
 		return NULL;
 	}
+	if ((bpp != 16) && (FreeImage_GetBPP(dib) != (unsigned)bpp)) {
+		// FreeImage_Allocate falls back to 8-bit for a bit depth it does not know:
+		// the file is not an image with a supported bit depth (CVE-2020-21428)
+		FreeImage_Unload(dib);
+		return NULL;
+	}
 
 	// read the file
 	// -------------------------------------------------------------------------

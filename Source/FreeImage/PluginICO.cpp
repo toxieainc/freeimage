@@ -329,6 +329,11 @@ LoadStandardIcon(FreeImageIO *io, fi_handle handle, int flags, BOOL header_only)
 	}
 
 	// read the icon
+	if((bit_count != FreeImage_GetBPP(dib)) || (pitch != FreeImage_GetPitch(dib)) || (width <= 0) || (height < 0) || ((unsigned)height != FreeImage_GetHeight(dib))) {
+		// the pixel data are read as one block: the dib must have the size computed from the header (CVE-2020-24292)
+		FreeImage_Unload(dib);
+		return NULL;
+	}
 	io->read_proc(FreeImage_GetBits(dib), height * pitch, 1, handle);
 
 #ifdef FREEIMAGE_BIGENDIAN

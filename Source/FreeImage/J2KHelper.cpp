@@ -202,6 +202,14 @@ FIBITMAP* J2KImageToFIBITMAP(int format_id, const opj_image_t *image, BOOL heade
 		if(header_only) {
 			return dib;
 		}
+
+		// check that every component used below was decoded with the expected geometry
+		for(int c = 0; c < numcomps; c++) {
+			const opj_image_comp_t *comp = &image->comps[c];
+			if(!comp->data || (comp->w != image->comps[0].w) || (comp->h != image->comps[0].h) || (comp->prec < 1)) {
+				throw FI_MSG_ERROR_CORRUPTED_IMAGE;
+			}
+		}
 		
 		if(image->comps[0].prec <= 8) {
 			if(numcomps == 1) {
@@ -486,7 +494,6 @@ opj_image_t* FIBITMAPToJ2KImage(int format_id, FIBITMAP *dib, const opj_cparamet
 			cmptparm[i].w = w;
 			cmptparm[i].h = h;
 			cmptparm[i].prec = prec;
-			cmptparm[i].bpp = prec;
 			cmptparm[i].sgnd = 0;
 		}
 		// create the image 

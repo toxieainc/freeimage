@@ -423,10 +423,12 @@ ReadProfile(WMPStream* pStream, unsigned cbByteCount, unsigned uOffset, BYTE **p
 	if(!pbProfile) {
 		return WMP_errOutOfMemory;
 	}
+	// the (possibly moved) buffer is owned by the caller from now on, even if reading fails:
+	// otherwise the caller would free the old, already released buffer
+	*ppbProfile = pbProfile;
 	// read the profile
 	if(WMP_errSuccess == pStream->SetPos(pStream, uOffset)) {
 		if(WMP_errSuccess == pStream->Read(pStream, pbProfile, cbByteCount)) {
-			*ppbProfile = pbProfile;
 			return WMP_errSuccess;
 		}
 	}

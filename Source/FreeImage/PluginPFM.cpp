@@ -120,7 +120,12 @@ pfm_get_int(FreeImageIO *io, fi_handle handle) {
 		int i = 0;
 
 		while (1) {
-			i = (i * 10) + (c - '0');
+			const int digit = c - '0';
+			if (i > (INT_MAX - digit) / 10) {
+				// does not fit into an int
+				throw FI_MSG_ERROR_PARSING;
+			}
+			i = (i * 10) + digit;
 
 			if (io->read_proc(&c, 1, 1, handle) != 1) {
 				throw FI_MSG_ERROR_PARSING;
@@ -243,7 +248,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		// Read the header information: width, height and the scale value
 		int width = pfm_get_int(io, handle);
 		int height = pfm_get_int(io, handle);
-		if ((width <= 0) || (height <= 0)) {
+		// RGBF images read a line of 3 * width floats, so 3 * width must not overflow (CVE-2020-22524)
+		if ((width <= 0) || (height <= 0) || (width > INT_MAX / 3)) {
 			throw FI_MSG_ERROR_PARSING;
 		}
 

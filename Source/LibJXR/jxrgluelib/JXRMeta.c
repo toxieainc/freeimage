@@ -246,12 +246,12 @@ Cleanup:
 }
 
 
-ERR StreamCalcIFDSize(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd)
+static ERR StreamCalcIFDSizePrivate(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd, U32 rcnt)
 {
     ERR err = WMP_errSuccess;
     size_t offCurPos = 0;
     Bool GetPosOK = FALSE;
-    U16 cDir;
+    U16 cDir = 0;
     U32 i;
     U32 ofsdir;
     U32 cbifd = 0;
@@ -260,6 +260,10 @@ ERR StreamCalcIFDSize(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd)
     U32 cbInteroperabilityIFD = 0;
 
     *pcbifd = 0;
+
+    // sanity check: avoid an unbounded recursion on nested IFDs pointing to each other (CVE-2019-12212)
+    FailIf(rcnt > 10, WMP_errFail);
+
     Call(pWS->GetPos(pWS, &offCurPos));
     GetPosOK = TRUE;
 
@@ -281,15 +285,15 @@ ERR StreamCalcIFDSize(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd)
         FailIf(type == 0 || type >= sizeof(IFDEntryTypeSizes) / sizeof(IFDEntryTypeSizes[0]), WMP_errUnsupportedFormat);
         if ( tag == WMP_tagEXIFMetadata )
         {
-            Call(StreamCalcIFDSize(pWS, value, &cbEXIFIFD));
+            Call(StreamCalcIFDSizePrivate(pWS, value, &cbEXIFIFD, rcnt + 1));
         }
         else if ( tag == WMP_tagGPSInfoMetadata )
         {
-            Call(StreamCalcIFDSize(pWS, value, &cbGPSInfoIFD));
+            Call(StreamCalcIFDSizePrivate(pWS, value, &cbGPSInfoIFD, rcnt + 1));
         }
         else if ( tag == WMP_tagInteroperabilityIFD )
         {
-            Call(StreamCalcIFDSize(pWS, value, &cbInteroperabilityIFD));
+            Call(StreamCalcIFDSizePrivate(pWS, value, &cbInteroperabilityIFD, rcnt + 1));
         }
         else
         {
@@ -309,10 +313,19 @@ ERR StreamCalcIFDSize(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd)
 
 Cleanup:
     if ( GetPosOK )
-        Call(pWS->SetPos(pWS, offCurPos));
+    {
+        // restore the position, but keep the first error
+        ERR errPos = pWS->SetPos(pWS, offCurPos);
+        if ( !Failed(err) )
+            err = errPos;
+    }
     return ( err );
 }
 
+ERR StreamCalcIFDSize(struct WMPStream* pWS, U32 uIFDOfs, U32 *pcbifd)
+{
+    return StreamCalcIFDSizePrivate(pWS, uIFDOfs, pcbifd, 0);
+}
 
 
 // src IFD copied to dst IFD with any nested IFD's

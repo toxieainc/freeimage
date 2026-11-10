@@ -565,14 +565,14 @@ Rotate8Bit(FIBITMAP *dib, double angle, double x_shift, double y_shift, double x
 	}
 
 	// allocate a temporary array
-	ImageRasterArray = (double*)malloc(width * height * sizeof(double));
+	ImageRasterArray = (double*)malloc((size_t)width * height * sizeof(double));
 	if(!ImageRasterArray) {
 		FreeImage_Unload(dst);
 		return NULL;
 	}
 	// copy data samples
 	for(y = 0; y < height; y++) {
-		double *pImage = &ImageRasterArray[y*width];
+		double *pImage = &ImageRasterArray[(size_t)y * width];
 		BYTE *src_bits = FreeImage_GetScanLine(dib, height-1-y);
 
 		for(x = 0; x < width; x++) {

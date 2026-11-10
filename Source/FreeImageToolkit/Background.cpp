@@ -234,8 +234,11 @@ FillBackgroundBitmap(FIBITMAP *dib, const RGBQUAD *color, int options) {
 	BYTE *dst_bits = src_bits;	
 	
 	BOOL supports_alpha = ((bpp >= 24) || ((bpp == 8) && (color_type != FIC_PALETTE)));
-	
-	// Check for RGBA case if bitmap supports alpha 
+
+	// the alpha blended color must live as long as color_intl points to it
+	RGBQUAD blend;
+
+	// Check for RGBA case if bitmap supports alpha
 	// blending (8-bit greyscale, 24- or 32-bit images)
 	if (supports_alpha && (options & FI_COLOR_IS_RGBA_COLOR)) {
 		
@@ -264,7 +267,6 @@ FillBackgroundBitmap(FIBITMAP *dib, const RGBQUAD *color, int options) {
 				bgcolor.rgbRed = src_bits[FI_RGBA_RED];
 				bgcolor.rgbReserved = 0xFF;
 			}
-			RGBQUAD blend;
 			GetAlphaBlendedColor(&bgcolor, color_intl, &blend);
 			color_intl = &blend;
 		}

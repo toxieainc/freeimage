@@ -278,7 +278,8 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					}
 
 					if (!FreeImage_LookupX11Color(clr,  &rgba.r, &rgba.g, &rgba.b)) {
-						sprintf(msg, "Unknown color name '%s'", str);
+						// the color name comes from the file: bound the message to the buffer (CVE-2024-31570)
+						snprintf(msg, sizeof(msg), "Unknown color name '%s'", str);
 						free(str);
 						throw msg;
 					}

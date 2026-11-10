@@ -26,6 +26,9 @@
     <ClCompile Include="function_list.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ht_dec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,10 +53,13 @@
     <ClCompile Include="opj_clock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="opj_malloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="pi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="raw.c">
+    <ClCompile Include="sparse_array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="t1.c">
@@ -66,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tgt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -106,10 +115,19 @@
     <ClInclude Include="mqc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mqc_inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="openjpeg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="opj_clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="opj_codec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="opj_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="opj_config.h">
@@ -124,22 +142,19 @@
     <ClInclude Include="opj_intmath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opj_inttypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="opj_malloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="opj_stdint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="raw.h">
+    <ClInclude Include="sparse_array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="t1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="t1_ht_luts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="t1_luts.h">
@@ -151,7 +166,13 @@
     <ClInclude Include="tcd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="tgt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tls_keys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

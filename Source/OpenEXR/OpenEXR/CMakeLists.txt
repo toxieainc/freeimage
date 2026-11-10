@@ -8,9 +8,9 @@ openexr_define_library(OpenEXR
     ImfAutoArray.h
     ImfB44Compressor.h
     ImfCheckedArithmetic.h
+    ImfCompression.h
     ImfCompressor.h
     ImfDwaCompressor.h
-    ImfDwaCompressorSimd.h
     ImfFastHuf.h
     ImfInputPartData.h
     ImfInputStreamMutex.h
@@ -29,8 +29,6 @@ openexr_define_library(OpenEXR
     ImfTiledMisc.h
     ImfZip.h
     ImfZipCompressor.h
-    b44ExpLogTable.h
-    dwaLookups.h
     ImfAcesFile.cpp
     ImfAttribute.cpp
     ImfB44Compressor.cpp
@@ -42,6 +40,9 @@ openexr_define_library(OpenEXR
     ImfCompositeDeepScanLine.cpp
     ImfCompressionAttribute.cpp
     ImfCompressor.cpp
+    ImfCompression.cpp
+    ImfContext.cpp
+    ImfContextInit.cpp
     ImfConvert.cpp
     ImfCRgbaFile.cpp
     ImfDeepCompositing.cpp
@@ -134,6 +135,9 @@ openexr_define_library(OpenEXR
     ImfCompositeDeepScanLine.h
     ImfCompression.h
     ImfCompressionAttribute.h
+    ImfCompressor.h
+    ImfContext.h
+    ImfContextInit.h
     ImfConvert.h
     ImfCRgbaFile.h
     ImfDeepCompositing.h
@@ -174,6 +178,7 @@ openexr_define_library(OpenEXR
     ImfLineOrderAttribute.h
     ImfLut.h
     ImfMatrixAttribute.h
+    ImfMisc.h
     ImfMultiPartInputFile.h
     ImfMultiPartOutputFile.h
     ImfMultiView.h
@@ -216,5 +221,5 @@ openexr_define_library(OpenEXR
     OpenEXR::Config
     OpenEXR::Iex
     OpenEXR::IlmThread
-    ZLIB::ZLIB
+    OpenEXR::OpenEXRCore
   )

@@ -144,19 +144,19 @@ Check if a BITMAPINFOHEADER is valid
 */
 static BOOL
 CheckBitmapInfoHeader(BITMAPINFOHEADER *bih) {
-	if (bih->biSize != sizeof(BITMAPINFOHEADER)) {
-		// The size, in bytes, of the image.This may be set to zero for BI_RGB bitmaps.
-		// If biCompression is BI_JPEG or BI_PNG, biSizeImage indicates the size of the JPEG or PNG image buffer, respectively.
-		if ((bih->biSize == 0) && (bih->biCompression != BI_RGB)) {
+	// The header size has to be one of the versions accepted by Load:
+	// BITMAPINFOHEADER (40), BITMAPV2INFOHEADER (52), BITMAPV3INFOHEADER (56), the OS/2 2.x header (64),
+	// BITMAPV4HEADER (108) and BITMAPV5HEADER (124). The fields beyond the first 40 bytes are not used here.
+	switch (bih->biSize) {
+		case 40:
+		case 52:
+		case 56:
+		case 64:
+		case 108:
+		case 124:
+			break;
+		default:
 			return FALSE;
-		}
-		else if ((bih->biCompression == BI_JPEG) || (bih->biCompression == BI_PNG)) {
-			// JPEG or PNG is not yet supported
-			return FALSE;
-		}
-		else {
-			return FALSE;
-		}
 	}
 	if (bih->biWidth < 0) {
 		return FALSE;
@@ -286,14 +286,17 @@ LoadPixelDataRLE4(FreeImageIO *io, fi_handle handle, int width, int height, FIBI
 	try {
 		height = abs(height);
 
-		pixels = (BYTE*)malloc(width * height * sizeof(BYTE));
+		// use size_t arithmetic: width * height may not fit into an int (CVE-2023-47994)
+		const size_t pixel_count = (size_t)width * (size_t)height;
+
+		pixels = (BYTE*)malloc(pixel_count * sizeof(BYTE));
 		if (!pixels) {
 			throw(1);
 		}
-		memset(pixels, 0, width * height * sizeof(BYTE));
+		memset(pixels, 0, pixel_count * sizeof(BYTE));
 
 		BYTE *q = pixels;
-		BYTE *end = pixels + height * width;
+		BYTE *end = pixels + pixel_count;
 
 		for (int scanline = 0; scanline < height; ) {
 			if (q < pixels || q  >= end) {
@@ -324,7 +327,7 @@ LoadPixelDataRLE4(FreeImageIO *io, fi_handle handle, int width, int height, FIBI
 						// End of line
 						bits = 0;
 						scanline++;
-						q = pixels + scanline * width;
+						q = pixels + (size_t)scanline * width;
 					}
 					break;
 
@@ -349,7 +352,12 @@ LoadPixelDataRLE4(FreeImageIO *io, fi_handle handle, int width, int height, FIBI
 						// apply them
 						bits += delta_x;
 						scanline += delta_y;
-						q = pixels + scanline*width+bits;
+						if ((scanline >= height) || ((size_t)scanline * width + bits >= pixel_count)) {
+							// the delta leaves the image
+							q = end;
+						} else {
+							q = pixels + (size_t)scanline * width + bits;
+						}
 					}
 					break;
 
@@ -382,7 +390,7 @@ LoadPixelDataRLE4(FreeImageIO *io, fi_handle handle, int width, int height, FIBI
 		{
 			// Convert to 4-bit
 			for(int y = 0; y < height; y++) {
-				const BYTE *src = (BYTE*)pixels + y * width;
+				const BYTE *src = (BYTE*)pixels + (size_t)y * width;
 				BYTE *dst = FreeImage_GetScanLine(dib, y);
 
 				BOOL hinibble = TRUE;
@@ -504,7 +512,9 @@ LoadPixelDataRLE8(FreeImageIO *io, fi_handle handle, int width, int height, FIBI
 		}
 	}
 	
-	return FALSE;
+	// all the scanlines are decoded: a file whose last line ends with an end-of-line
+	// (and not directly with an end-of-bitmap) is complete as well
+	return TRUE;
 }
 
 // --------------------------------------------------------------------------
@@ -1487,7 +1497,7 @@ Save(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flags, void
 		// write the bitmap data... if RLE compression is enable, use it
 
 		if ((dst_bpp == 8) && ((flags & BMP_SAVE_RLE) == BMP_SAVE_RLE)) {
-			BYTE *buffer = (BYTE*)malloc(dst_pitch * 2 * sizeof(BYTE));
+			BYTE *buffer = (BYTE*)malloc((size_t)dst_pitch * 2 * sizeof(BYTE));
 
 			for (unsigned i = 0; i < dst_height; ++i) {
 				int size = RLEEncodeLine(buffer, FreeImage_GetScanLine(dib, i), FreeImage_GetLine(dib));

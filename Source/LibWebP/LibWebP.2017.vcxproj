@@ -28,24 +28,24 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -189,14 +189,20 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="sharpyuv\sharpyuv.h" />
+    <ClInclude Include="sharpyuv\sharpyuv_cpu.h" />
+    <ClInclude Include="sharpyuv\sharpyuv_csp.h" />
+    <ClInclude Include="sharpyuv\sharpyuv_dsp.h" />
+    <ClInclude Include="sharpyuv\sharpyuv_gamma.h" />
     <ClInclude Include="src\dec\alphai_dec.h" />
     <ClInclude Include="src\dec\common_dec.h" />
+    <ClInclude Include="src\dec\vp8_dec.h" />
     <ClInclude Include="src\dec\vp8i_dec.h" />
     <ClInclude Include="src\dec\vp8li_dec.h" />
-    <ClInclude Include="src\dec\vp8_dec.h" />
     <ClInclude Include="src\dec\webpi_dec.h" />
     <ClInclude Include="src\dsp\common_sse2.h" />
     <ClInclude Include="src\dsp\common_sse41.h" />
+    <ClInclude Include="src\dsp\cpu.h" />
     <ClInclude Include="src\dsp\dsp.h" />
     <ClInclude Include="src\dsp\lossless.h" />
     <ClInclude Include="src\dsp\lossless_common.h" />
@@ -207,7 +213,6 @@
     <ClInclude Include="src\dsp\yuv.h" />
     <ClInclude Include="src\enc\backward_references_enc.h" />
     <ClInclude Include="src\enc\cost_enc.h" />
-    <ClInclude Include="src\enc\delta_palettization_enc.h" />
     <ClInclude Include="src\enc\histogram_enc.h" />
     <ClInclude Include="src\enc\vp8i_enc.h" />
     <ClInclude Include="src\enc\vp8li_enc.h" />
@@ -221,6 +226,7 @@
     <ClInclude Include="src\utils\filters_utils.h" />
     <ClInclude Include="src\utils\huffman_encode_utils.h" />
     <ClInclude Include="src\utils\huffman_utils.h" />
+    <ClInclude Include="src\utils\palette.h" />
     <ClInclude Include="src\utils\quant_levels_dec_utils.h" />
     <ClInclude Include="src\utils\quant_levels_utils.h" />
     <ClInclude Include="src\utils\random_utils.h" />
@@ -236,6 +242,13 @@
     <ClInclude Include="src\webp\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sharpyuv\sharpyuv.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_cpu.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_csp.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_dsp.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_gamma.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_neon.c" />
+    <ClCompile Include="sharpyuv\sharpyuv_sse2.c" />
     <ClCompile Include="src\dec\alpha_dec.c" />
     <ClCompile Include="src\dec\buffer_dec.c" />
     <ClCompile Include="src\dec\frame_dec.c" />
@@ -243,8 +256,8 @@
     <ClCompile Include="src\dec\io_dec.c" />
     <ClCompile Include="src\dec\quant_dec.c" />
     <ClCompile Include="src\dec\tree_dec.c" />
-    <ClCompile Include="src\dec\vp8l_dec.c" />
     <ClCompile Include="src\dec\vp8_dec.c" />
+    <ClCompile Include="src\dec\vp8l_dec.c" />
     <ClCompile Include="src\dec\webp_dec.c" />
     <ClCompile Include="src\demux\anim_decode.c" />
     <ClCompile Include="src\demux\demux.c" />
@@ -268,7 +281,6 @@
     <ClCompile Include="src\dsp\dec_sse2.c" />
     <ClCompile Include="src\dsp\dec_sse41.c" />
     <ClCompile Include="src\dsp\enc.c" />
-    <ClCompile Include="src\dsp\enc_avx2.c" />
     <ClCompile Include="src\dsp\enc_mips32.c" />
     <ClCompile Include="src\dsp\enc_mips_dsp_r2.c" />
     <ClCompile Include="src\dsp\enc_msa.c" />
@@ -281,7 +293,9 @@
     <ClCompile Include="src\dsp\filters_neon.c" />
     <ClCompile Include="src\dsp\filters_sse2.c" />
     <ClCompile Include="src\dsp\lossless.c" />
+    <ClCompile Include="src\dsp\lossless_avx2.c" />
     <ClCompile Include="src\dsp\lossless_enc.c" />
+    <ClCompile Include="src\dsp\lossless_enc_avx2.c" />
     <ClCompile Include="src\dsp\lossless_enc_mips32.c" />
     <ClCompile Include="src\dsp\lossless_enc_mips_dsp_r2.c" />
     <ClCompile Include="src\dsp\lossless_enc_msa.c" />
@@ -346,6 +360,7 @@
     <ClCompile Include="src\utils\filters_utils.c" />
     <ClCompile Include="src\utils\huffman_encode_utils.c" />
     <ClCompile Include="src\utils\huffman_utils.c" />
+    <ClCompile Include="src\utils\palette.c" />
     <ClCompile Include="src\utils\quant_levels_dec_utils.c" />
     <ClCompile Include="src\utils\quant_levels_utils.c" />
     <ClCompile Include="src\utils\random_utils.c" />

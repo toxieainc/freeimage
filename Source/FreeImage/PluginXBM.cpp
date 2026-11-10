@@ -56,7 +56,7 @@ readLine(char *str, int n, FreeImageIO *io, fi_handle handle) {
 	do {
 		count = io->read_proc(&c, 1, 1, handle);
 		str[i++] = c;
-	} while((c != '\n') && (i < n));
+	} while((c != '\n') && (i < n - 1));	// keep room for the terminating null (CVE-2024-28583)
 	if(count <= 0)
 		return NULL;
 	str[i] = '\0';
@@ -91,8 +91,8 @@ readXBMFile(FreeImageIO *io, fi_handle handle, int *widthP, int *heightP, char *
 	char* ptr;
 	char* t;
 	int version = 0;
-	int raster_length, v;
-	int bytes, bytes_per_line, padding;
+	size_t raster_length, bytes, bytes_per_line;
+	int v, padding;
 	int c1, c2, value1, value2;
 	int hex_table[256];
 	BOOL found_declaration;
@@ -149,14 +149,19 @@ readXBMFile(FreeImageIO *io, fi_handle handle, int *widthP, int *heightP, char *
 		return( ERR_XBM_WIDTH );
 	if( *heightP == -1 )
 		return( ERR_XBM_HEIGHT );
+	// reject sizes which are negative, zero or too large
+	if( (*widthP <= 0) || (*widthP > 65535) )
+		return( ERR_XBM_WIDTH );
+	if( (*heightP <= 0) || (*heightP > 65535) )
+		return( ERR_XBM_HEIGHT );
 
 	padding = 0;
 	if ( ((*widthP % 16) >= 1) && ((*widthP % 16) <= 8) && (version == 10) )
 		padding = 1;
 
-	bytes_per_line = (*widthP + 7) / 8 + padding;
+	bytes_per_line = (size_t)((*widthP + 7) / 8 + padding);
 
-	raster_length =  bytes_per_line * *heightP;
+	raster_length =  bytes_per_line * (size_t)*heightP;
 	*dataP = (char*) malloc( raster_length );
 	if ( *dataP == (char*) 0 )
 		return( ERR_XBM_MEMORY );
@@ -210,7 +215,8 @@ readXBMFile(FreeImageIO *io, fi_handle handle, int *widthP, int *heightP, char *
 			if ( value2 >= 256 )
 				return( ERR_XBM_SYNTAX );
 			*ptr++ = (char)value2;
-			if ( ( ! padding ) || ( ( bytes + 2 ) % bytes_per_line ) )
+			// with an odd raster length the last value has no room
+			if ( ( ( ! padding ) || ( ( bytes + 2 ) % bytes_per_line ) ) && ( bytes + 1 < raster_length ) )
 				*ptr++ = (char)value1;
 		}
 	}
@@ -292,7 +298,7 @@ MimeType() {
 static BOOL DLL_CALLCONV
 Validate(FreeImageIO *io, fi_handle handle) {
 	char magic[8];
-	if(readLine(magic, 7, io, handle)) {
+	if(readLine(magic, 8, io, handle)) {
 		if(strcmp(magic, "#define") == 0)
 			return TRUE;
 	}

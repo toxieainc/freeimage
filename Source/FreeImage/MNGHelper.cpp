@@ -748,6 +748,7 @@ mng_ReadChunks(int format_id, FreeImageIO *io, fi_handle handle, long Offset, in
 	DWORD mLength = 0;
 	BYTE mChunkName[5];
 	BYTE *mChunk = NULL;
+	BYTE *ptrTmp = NULL;	// result of realloc, keeps the old buffer valid on failure
 	DWORD crc_file;
 	long LastOffset;
 	long mOrigPos;
@@ -817,11 +818,12 @@ mng_ReadChunks(int format_id, FreeImageIO *io, fi_handle handle, long Offset, in
 			mChunkName[4] = '\0';
 
 			if(mLength > 0) {
-				mChunk = (BYTE*)realloc(mChunk, mLength);
-				if(!mChunk) {
+				ptrTmp = (BYTE*)realloc(mChunk, mLength);
+				if(!ptrTmp) {
 					FreeImage_OutputMessageProc(format_id, "Error while parsing %s chunk: out of memory", mChunkName);
 					throw (const char*)NULL;
-				}				
+				}
+				mChunk = ptrTmp;				
 				Offset = io->tell_proc(handle);
 				if(Offset + (long)mLength > mLOF) {
 					FreeImage_OutputMessageProc(format_id, "Error while parsing %s chunk: unexpected end of file", mChunkName);
@@ -887,11 +889,12 @@ mng_ReadChunks(int format_id, FreeImageIO *io, fi_handle handle, long Offset, in
 				case PLTE:	// Global
 					m_HasGlobalPalette = TRUE;
 					PLTE_file_size = mLength + 12; // (lentgh, name, array, crc) = (4, 4, mLength, 4)
-					PLTE_file_chunk = (BYTE*)realloc(PLTE_file_chunk, PLTE_file_size);
-					if(!PLTE_file_chunk) {
+					ptrTmp = (BYTE*)realloc(PLTE_file_chunk, PLTE_file_size);
+					if(!ptrTmp) {
 						FreeImage_OutputMessageProc(format_id, "Error while parsing %s chunk: out of memory", mChunkName);
 						throw (const char*)NULL;
 					} else {
+						PLTE_file_chunk = ptrTmp;
 						mOrigPos = io->tell_proc(handle);
 						// seek to the start of the chunk
 						io->seek_proc(handle, LastOffset, SEEK_SET);
@@ -926,11 +929,12 @@ mng_ReadChunks(int format_id, FreeImageIO *io, fi_handle handle, long Offset, in
 					FreeImage_SeekMemory(hPngMemory, 0, SEEK_SET);
 					FreeImage_WriteMemory(g_png_signature, 1, 8, hPngMemory);
 
-					mChunk = (BYTE*)realloc(mChunk, m_TotalBytesOfChunks);
-					if(!mChunk) {
+					ptrTmp = (BYTE*)realloc(mChunk, m_TotalBytesOfChunks);
+					if(!ptrTmp) {
 						FreeImage_OutputMessageProc(format_id, "Error while parsing %s chunk: out of memory", mChunkName);
 						throw (const char*)NULL;
 					}
+					mChunk = ptrTmp;
 					
 					// on calling CountPNGChunks earlier, we were in Offset pos,
 					// go back there

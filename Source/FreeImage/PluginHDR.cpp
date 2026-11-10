@@ -649,6 +649,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		if(!dib) {
 			throw FI_MSG_ERROR_MEMORY;
 		}
+		// use the size of the allocated image, the header values may not fit into an int (CVE-2024-28579, CVE-2024-28582)
+		width = FreeImage_GetWidth(dib);
+		height = FreeImage_GetHeight(dib);
 
 		// set the metadata as comments
 		rgbe_ReadMetadata(dib, &header_info);
@@ -672,6 +675,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	catch(const char *text) {
 		if(dib != NULL) {
 			FreeImage_Unload(dib);
+			dib = NULL;
 		}
 		FreeImage_OutputMessageProc(s_format_id, text);
 	}

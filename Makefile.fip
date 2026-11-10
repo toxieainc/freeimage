@@ -11,13 +11,13 @@ INSTALLDIR ?= $(DESTDIR)/usr/lib
 # Converts cr/lf to just lf
 DOS2UNIX = dos2unix
 
-LIBRARIES = -lstdc++
+LIBRARIES = -lstdc++ -lpthread
 
 MODULES = $(SRCS:.c=.o)
 MODULES := $(MODULES:.cpp=.o)
 
 # C flags
-CFLAGS ?= -std=c99 -O3 -fPIC -fexceptions -fvisibility=hidden
+CFLAGS ?= -std=gnu99 -O3 -fPIC -fexceptions -fvisibility=hidden
 # OpenJPEG
 CFLAGS += -DOPJ_STATIC
 # LibRaw
@@ -27,7 +27,7 @@ CFLAGS += -DDISABLE_PERF_MEASUREMENT -D__ANSI__
 CFLAGS += $(INCLUDE)
 
 # C++ flags
-CXXFLAGS ?= -std=c++0x -O3 -fPIC -fexceptions -fvisibility=hidden -Wno-ctor-dtor-privacy
+CXXFLAGS ?= -std=c++17 -O3 -fPIC -fexceptions -fvisibility=hidden -Wno-ctor-dtor-privacy
 # LibJXR
 CXXFLAGS += -D__ANSI__
 CXXFLAGS += $(INCLUDE)

@@ -3,8 +3,8 @@
 
 include Makefile.srcs
 
-CFLAGS =  -g -O2 -Wall -Wmissing-prototypes -std=c99 -ffast-math -fno-strict-aliasing
-CXXFLAGS =  -g -O2 -Wall -fno-strict-aliasing
+CFLAGS =  -g -O2 -Wall -Wmissing-prototypes -std=gnu99 -ffast-math -fno-strict-aliasing
+CXXFLAGS =  -g -O2 -Wall -fno-strict-aliasing -std=c++17
 
 GCC_VERSION = 4.2
 IPHONEOS_DEPLOYMENT_TARGET = 5.0

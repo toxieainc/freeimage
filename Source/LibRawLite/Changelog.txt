@@ -1,4 +1,353 @@
-2023-05-13   Alex Tutubalin <lexa@lexa.ru>
+2026-10-24  Alex Tutubalin <lexa@lexa.ru>
+  LibRaw 0.22.3 Release
+  This is bugfix-only release, see included commits list below.
+
+  * Special notes on CVE-2026-111272:
+    - (as described on author's page): This CVE report is based "only on 
+      static analysis" without attempting to reproduce the issue at runtime.
+    - In fact, "static analysis" failed: it assumes system calloc() use 
+      for memory allocation while LibRaw::calloc() is used in reality.
+    - So, "discovered" OOB-heap accesses by fixed offset(s) are not OOB,
+      all accesses occur within the allocated buffer
+    - The author made no attempts to contact our team.
+    - Our attempts to contact him also went unanswered.
+
+  Summary: this is false positive and a very bad example of reporting 
+  a non-existent vulnerability without trying to contact the vendor.
+
+ Commits included in this release:
+
+  * e8de2d60 destimage var added to omp parallel statement
+  * 11a5f842 changed (wrong) static to stack in normalize_model
+  * b55eef9a xtrans interpolate: incorrect memmove data size
+  * 37ee3956 X-Trans/half interpolation: find green  pixel based on CFA pattern, not pixel values
+  * b5b68d15 xtrans_interpolate: fix logic error, interpolation should use original pixel values, not ones adjusted on previous tile. Note: 2x image memory needed
+  * d7e09495 mask decodecache index in Sony YCbCr decoder
+  * 42c66b63 use local static strnlen version b/c global may be missing
+  * a97291bf Better gps ref recording
+  * 90cea585 tiff_head: perform strip bytes calculation in 64 bit, check against 2^31-1
+  * e1be11e2 CRX decoder: use 64 bit offsets in data
+  * a0462027 lossless DNG/SOF1-IDCT case: refuse images with tiff_samples > 1
+  * 1432e690 x3f camf matrix setup: size check
+  * fb2a2e94 implement explicit 6-bit mask on shift argument in pana8 decoder
+  * 4747dab4 CRX decoder: clamp qParam table index in legacy quantization path
+  * a624a732 allocated image size data check implemented in x3f loaded
+  * de356b1b additional offset check in x3f thumbnail loader
+  * 171848ad fixed wrong 32=>64 bit conversion in CIFF parser
+  * fd254378 dng: initialize tone-curve table before OpcodeList2 parsing
+  * d1ea9fe6 Fix: there is no isnan/isinf in MSVC 2010 and older
+  * f6606c19 Initi hassy's tmp_model w/ zeroes
+  * f67f8426 better Hasselblad model parsing
+  * b3ed417d explicitly initialize _fsize for bigfile datastream
+  * a403b25e add stream validity check before cr3 size checking
+  * 8f0ba465 Revert "check TIFF tag type for NewSubfileType"
+  * eaacd850 parse_kodak_ifd: fixed possible body name overrun
+  * 844de590 unset progress bit if open stage failed
+  * 3e4ba1d5 X3F utils: data size check added
+  * 121882f5 wavelet denoise/OpenMP case: add missed size initialization
+  * d48495b6 Check for valid float/double in getreal
+  * 764ace01 check TIFF tag type for NewSubfileType
+  * c9f2931a CRX decoder: prevent possible index overrun on damaged files
+
+2026-07-16  Alex Tutubalin <lexa@lexa.ru>
+  LibRaw 0.22.2 Release
+  This is bugfix-only release with these commits included:
+
+  * 5e37b038 Fixed 6yr old typos in USE_6BY9RPI 8- and 16- bit decoders
+  * e4b18e7a trimSpaces: Improved handling of zero-length strings and strings consisting only of spaces
+  * d932fa11 Misc fixups
+  * dead45de Fix links to license files in contributing document
+  * be519b31 removeExcessiveSpaces: handle zero-length strings the right way
+  * 98bb471b contributing rules updated
+  * 2bc644b3 Zero read buffers before fread
+  * f33997a1 FP DNG loader: check for tile index; convertFloatToInt: avoid possible integer overflow
+  * c9fcadbe open_bayer(): reject images with raw size/visible size less than 22 (as in open_file/identify); vng_interpolate: do not interpolate images less than 8x8
+  * 4bf0a0af PPM16 thumb: check against LIBRAW_MAX_THUMBNAIL_MB
+  * 7bf4c81c open_bayer(): additional input data checks
+  * 184c2ec5 Olympus/14bit: refuse incorrect wbits metadata
+  * 2ae5b3b3 X3F decoder: initialise raw storage if LIBRAW_CALLOC_RAWSTORE defined
+  * e2547d07 crx decoder: check plane size agains imgdata.rawparams.max_raw_memory_mb
+  * 2dce5bdb Crx decoder: avoid possible int32 overflow on allocation size calculations
+  * 67a7ddaf check for ifd->bps values in FP DNG decoder
+  * 595c8364 fixed stack memory/previous image metadata exposure (reported by DMSAN)
+  * f8065268 LibRaw_memmgr: allow malloc to fail on local pointer array small allocation. It will definitely fall later on large-buffer allocation
+  * 233ae06d rotated fuji: stricter image size limits; raw2image(ex): avoid possible 32-bit overflow on alloc size calculations
+  * a0880cfa width/height and iwidth/height values documented
+  * 3bea0fa8 width/height and iwidth/height values documented
+  * 7dff13dc wavelet denoise: ensure allocation size not exceed 4GB
+  * 56fc049a unpack_thumb:  check JPEG thumbnail size before performing allocation;  Remove all allocation test results because LibRaw::calloc/malloc will raise exception if allocation fails
+  * 07597ffd removed row_stride signed/unsigned mix; check row_stride value against buffer size
+  * 3ba757f7 fixed possible next struct item override in x3f_parse
+  * 537e81c0 parse_phase_one: prevent buffer overrun if incorrect flat field data provided
+  * 80a05133 Limit parse_mos recursion depth; parse_qt: raise exception, do not hide too depth nesting error
+  * b41f8137 parse_qt: avoid too deep recursion
+
+2026-04-06  Alex Tutubalin <lexa@lexa.ru>
+  LibRaw 0.22.1 Release
+  This is bugfix-only release with these commits included:
+
+  * Limit strcat space in hassy model manipulation
+  * Version increment; shlib increment: internal ABI has changed
+  * check panasonic enc8 tile width against image width
+  * CR3 parser: zero all buffers before fread
+  * skip memory allocation checks for OWN_ALLOC decoders
+  * DNG SDK glue: check for memory limits
+  * raw2image()/dcraw_process() - check for int16 source data present
+  * Check for correct bayer pattern, pass incorect ones to vng_interpolate
+  * parse_rollei: zero input string before fgets
+  * Nikon padded/12bit: no need to calculate padded row size before final raw_width adjustment
+  * TALOS-2026-2364: Fix for data size calculation integer overflow in float/deflated DNG loader; Check for read results
+  * Fix for TALOS-2026-2363: avoid integer overflow in allocation size calculation. Also: check for EOF in read loop
+  * X3F decoder: implemented hard single allocation limit via LIBRAW_X3F_ALLOC_LIMIT_MB define; 
+    allocation size calculation converted to 64 bit arithm; fix for TALOS-2026-2359
+  * Fix for TALOS-2026-2358
+  * Fix for TALOS-2026-2331
+  * Fix for TALOS-2026-2330
+  * Sony YCC decoder: check tile size; add +3 bytes to input buffer to avoid possible overrun in huffman decoder
+  * FP DNG data limit: perform calculations in 64 bit
+  * Add extra huff_coeff item to handle huff_index==17 with known (zero) value, not externally provided tag value
+  * use %lld format for timestamp parse/print where appropriate
+  * nikon coolscan loader: check for EOF
+  * Initialize olympus lensID bits
+  * CR3 parser: all file offsets are unsigned/64bit; check current offset against file size
+  * Add Canon EOS Kiss M2 to camera list
+  * Check real color count against filters; do not pass really 4-color images to fbdd or advanced demosaic
+  * Use LIBRAW_EXCEPTION instead of own internal in losslessjpeg.h
+  * zero input string to avoid compare random stack garbage with tag names
+  * Check for eof in Pentax tag search loop
+  * Fuji decoder: initialize allocated buffers
+
+2025-12-25  Alex Tutubalin <lexa@lexa.ru>
+
+  LibRaw 0.22 Release (Changelog relative to 0.21-release)
+
+ == Raw format support ==
+
+  * Panasonic encoding 8
+
+  * Sony YCC (Medium/Small compression) pseudo-RAW support: 
+    - normal processing (3-channel RGB output)
+
+    - or YCbCr output if LIBRAW_RAWSPECIAL_SRAW_NO_RGB bit is set
+      in imgdata.rawparams.specials (one may specify the 
+      LIBRAW_RAWSPECIAL_SRAW_NO_INTERPOLATE flag too avoid Cb/Cr interpolation)
+      Note: if YCbCr is selected, Cb/Cr neutral points are adjusted to 8192
+      (to fit histogram/range area of the Y channel)
+
+    - RAW (pseudo-RAW) data is already white balanced, so 
+         imgdata.color.as_shot_wb_applied is set to 
+         LIBRAW_ASWB_APPLIED | LIBRAW_ASWB_SONY
+
+  * DNG 1.7 (including JPEG-XL compression) support via Adobe DNG SDK 1.7.x integration
+
+  * Canon CRN files: embedded RAW extracted
+
+  * New implementation for Samsung V3 decoder (NX1, NX500, etc)
+
+  * OM System 14-bit high-resolution files.
+    Note: the new decoder supports old (12-bit) Olympus/OM-System files
+    too and slightly faster (about 5%), so the old one is removed.
+
+  * Nikon NEFX (4/8/16/32 shots in PixelShift mode merged via Nikon software)
+
+== Camera support ==
+
+  * Canon EOS R1, EOS R5 Mark II, EOS R5 C, EOS R6 Mark II, EOS R8, EOS R50, EOS R100, EOS Ra
+  * Fujifilm X-T50, GFX 100S II, GFX100-II, X-T5, X-S20, X-H2
+       X-H2S: support of files with wrong metadata (pre 1.03 fw)
+  * GoPro HERO11, HERO12 (via GoPro SDK)
+  * Hasselblad  CFV-50c, CFV-100c, X2D-100c
+  * Leica Q3 43, D-Lux8, SL3, Q3, M11 Monochrom
+  * Nikon (standard compression only): Z6-III, Z f, Z30, Z8
+  * Olympus/OM System OM-1 Mark II, TG-7, OM-5
+  * Panasonic GH7, S9, DC-G9 II, DC-ZS200D / ZS220D, DC-TZ200D / TZ202D / TZ220D, DC-S5-II, DC-GH6
+  * Pentax KF, K III Monochrome
+  * Sony ZV-E10M2, UMC-R10C, A9-III, ILX-LR1, A7C-II, A7CR, ILCE-6700,  ZV-1M2, ZV-E1, ILCE-7RM5 (A7R-V), ILME-FX30
+       A1: support for files damaged by exiftool 
+  * Multiple DJI and Skydio drones
+  * Tested with multiple smartphones with DNG format recorded.
+  * As planned in LibRaw snapshot 202101 release notes, OLD_VIDEOCAMS 
+    support is dropped.
+    These cameras are no longer supported:
+     - old RED Cine cameras
+     - Canon C500
+     - ARRI video/digital cinema cameras    
+ * Total supported camera count: 1284 (if compiled with all features)
+
+  == Preview format support ==
+
+  * JPEG-XL previews (DNG 1.7) support:
+    - new bit for imgdata.rawparams.options: 
+         LIBRAW_RAWOPTIONS_ALLOW_JPEGXL_PREVIEWS (not set by default)
+    - if the bit is set, LibRaw will perceive such previews in the same way as JPEG ones
+         (largest preview is selected by default, etc).
+    - tformat field for such preview is set to LIBRAW_THUMBNAIL_JPEGXL
+    - image metadata (width/height/channels count) is not parsed for JPEG-XL previews 
+  * H265 (Canon) and JPEG-XL thumbnail support for dcraw_make_mem_thumb
+       Note: libraw_processed_image_t.type is set to LIBRAW_IMAGE_H265 or 
+       LIBRAW_IMAGE_JPEGXL respectively
+
+  * Jpeg XL preview file writer
+
+  * Jpeg XL preview support in simple_dcraw -E/-e
+
+  == API/ABI changes ==
+  * New rawoptions/processing flag for DNG processing if compiled 
+    with Adobe DNG SDK:
+	  LIBRAW_RAWOPTIONS_DNG_STAGE23_IFPRESENT_JPGJXL
+   Similar to  LIBRAW_RAWOPTIONS_DNG_STAGE2_IFPRESENT,LIBRAW_RAWOPTIONS_DNG_STAGE3_IFPRESENT 
+   flags but applied to JPEG/JPEG-XL compressed images only:
+   If  OpcodeList2/OpcodeList3 tags are present in the input DNG file, these tags will be 
+   processed via Adobe DNG SDK, producing corrected (de-bayered) image.
+
+  * DNG OpcodeList1/2/3: opcode list(s) are read (as is) into
+    imgdata.color.dng_levels.rawopcodes[3]
+
+  * Exif callback is called from CR3 parser before calling parse_makernotes()
+    parameters are the same as usual, except tag parameter value.
+    tag values:
+      (0x70000 | 0x927c) - if called from  CMT3 tag
+      (__type << 20) | 0x80000 | 0x927c - if called from CTMD record with type __type
+
+  * Exif callback is called for Sony SR2 tag with tag parameter set to 0x60000 | tagID
+
+  * Makernotes callback implemented for TIFF-like (IFD structure makernotes)
+    Callback is very similar to exif_callback.
+    To set callback use LibRaw::set_makernotes_handler(exif_parser_callback cb, void *data)
+    Callback is called (if set) with tag value set to  (uptag << 16)|makernotes_tag
+    where uptag is
+     EXIF tag: if called from EXIF makernotes parser
+     0: if called from CR3 metadata parser
+     tag-ID if parse_makernotes() is called from some specific tag context (see parse_makernotes calls in source code).
+
+  * New metadata field makernotes.pentax.DynamicRangeExpansion[4]
+    if DynamicRangeExpansion[1] is non-zero, DynamicRangeExpansion[0] should be added
+    to BaselineExposure
+
+  * New API call (static) int LibRaw::simplify_make_model(unsigned * mkindex, char *mkbuf, unsigned mkbuf_size, char *modelbuf, unsigned modelbuf_size):
+    This call can be used to simplify/standardize vendor name/model received
+    from external source (e.g. EXIF block in JPEG file).
+      mkindex: pointer to received maker index (LibRaw_CAMERAMAKER_...)
+      mkbuf, mkbuf_size: buffer with make string, buffer size
+      modelbuf, modelbuf_size: buffer with model string.
+    simplify_make_model(..) simplifies/re-writes vendor name/model in place, in provided buffers.
+    return values:
+     0 - mkindex is set (if non-null pointer provided), data simplified;
+     1 - mkindex is not set, while some data processing is done;
+    -1 - incorrect parameters;
+
+  * All file offsets are 64-bit now;
+    Note: data callback signature has changed
+
+  * New LibRaw_abstract_datastream (and derived classes) methods:
+    bool is_buffered() - returns current buffering mode (if implemented);
+    void buffering_on() - turns buffering on.
+    These methods complement the (existing) buffering_off() method.
+
+  * New bits in imgdata.process_warnings:
+      LIBRAW_WARN_DNG_NOT_PROCESSED - RAW file was passed to DNG SDK, but not processed.
+      LIBRAW_WARN_DNG_NOT_PARSED - DNG parse error or non-valid DNG at valid_for_dngsdk() stage
+
+  * New compile-time define: LIBRAW_MAX_CR3_RAW_FILE_SIZE
+    Default: value of LIBRAW_MAX_NONDNG_RAW_FILE_SIZE
+    CR3 file size is limited by 4GB (max MP4 container size), so it may be needed
+    to set the limit above non-DNG 2GB file size limit.
+
+  * New imgdata.params.use_p1_correction parameter
+    If set to non-zero (default): PhaseOne compressed files will be corrected (linearization; defect mapping)
+    based on metadata contained in file.
+
+  * New possible bit in imgdata.process_warnings: LIBRAW_WARN_VENDOR_CROP_SUGGESTED
+    If set: unknown/untested RAW image frame size passed to LibRaw, cropping may be incorrect.
+    It is suggested to use LibRaw::adjust_to_raw_inset_crop(1) for vendor specified crop.
+ 
+ * LibRaw::adjust_to_raw_inset_crop exposed via C-API call:
+   libraw_adjust_to_raw_inset_crop(libraw_data_t *lr, unsigned mask, float maxcrop);
+   Note: default maxcrop value for C++ API is 0.55f
+
+  * Added imgdata.makernotes.sony.AspectRatio field
+    - if parsed: contains aspect ratio (width to height)
+    - if not parsed: initialized to -999.f
+
+  * Canon AutoRotate mode detection for several cameras.
+    If LIBRAW_RAWOPTIONS_CANON_CHECK_CAMERA_AUTO_ROTATION_MODE bit
+    is set in imgdata.rawparams: for shots with AutoRotate is Off
+    TIFF::Orientation tag wil be used for imgdata.sizes.flip
+    (and Makernotes rotation tag for other AutoRotate modes).
+    Note: AutoRotate is detected for limited set of Canon cameras,
+    namely: EOS 6D, 5D Mark IV, 5DS, 5DS R
+    To extend this list: we need specially shot samples to detect
+    AutoRotate field location in metadata. Contact us for details
+    if you need to add your camera to list and have such camera on hands
+
+  * Most small buffer allocations: malloc changed to calloc to prevent 
+    uninitialized heap data leaks
+
+  * Large buffer allocation (RAW backing store, thumbnails store):
+    If LIBRAW_CALLOC_RAWSTORE is defined on build: large buffers will be 
+    allocated via calloc
+
+  == Minor Improvements ==
+
+  * Fixed issue 712: mistype in MIN/MAX that loosens camera WB preset checks
+
+  * Updated libraw_types.h to fix calling C++ files in external C -- main
+    includes cannot be in extern C for the library to correctly compile
+    under Swift Modules. This small change lets the compiler
+    finish when compiling the library inside a module.
+
+  * Read known parts of the X3F 4.X (Quattro) header
+  
+  * Rollei loader: more realistic limits
+  
+  * Additional metadata checks in PhaseOne files processing
+  
+  * Minor fixes to improve stability and special crafted files handling
+  
+  * Multiple minor fixes to better handling of specially crafted files
+   
+  * Fixed regression in Fujufilm S6000/S6500 support
+  
+  * Improved damaged/incorrect files handling
+  
+  * Support for 4-color lossy-compressed DNG files
+  
+  * Improved damaged/incorrect/modified CR3 files handling 
+  
+  * Colordata updated for several Fujifilm cameras
+  
+  * Improved byte order detection for PowerPC
+  
+  * Minor fix: NOMINMAX defined before #include winsock2.h in
+    LibRaw public header to not provide min/max macros to the
+    code that includes libraw.h
+  
+  * RawSpeed1/3: do not pass files larger then 2GB
+
+  * DNG 1.7 JpegXL DNG/GoPro DNG: do not refuse files at open_file() if LibRaw is not built with DNG SDK/GoPro SDK
+    Note: LibRaw::get_decoder_info() will return decoder flag bit set to LIBRAW_DECODER_UNSUPPORTED_FORMAT if
+    LibRaw is not built with corresponding SDK.
+
+  * All implicit type conversion *excluding INT64<=>int/uint* conversions are made explicit
+    to remove C++ compiler type conversion warnings.
+
+   * Sony DSC-HX95: improved metadata parsing
+
+   * Better support for cropped images from latest Fujifilm cameras
+     (X-H2, X-H2S, X-T5)
+
+  * New patch for RawSpeed3:  05.no-phase-one-correction.patch
+    this patch disables RawSpeed's  PhaseOne flat field correction (not needed because
+    LibRaw uses own P1-metadata based correction)
+
+  * RawSpeed3/PhaseOne compressed files: scale unpacked data to match camer black level data.
+
+  * Better handling of DNG RAW Previews with Stage2 opcodes
+
+  * Nikon Z8/HLG mode: do not add 10 bit/unknown format thumbnails to the thumb_list
+
+  * Canon CR2 16-bit bitmap previes: do not convert from Kodak colorspace
+
   * New compile-defined limit LIBRAW_MAX_PROFILE_SIZE_MB: 
        limits allocation/read size for embedded color profile (default: 256Mb)
 
@@ -6,18 +355,53 @@
 
   * Check against corrupted LJPEG header in Canon sRAW decoder
  
-2023-01-05  Alex Tutubalin <lexa@lexa.ru>
- LibRaw 0.21.1-Release
- * fixed typo in panasonic metadata parser
+  * Better support for Sony metadata
 
-2022-12-18  Alex Tutubalin <lexa@lexa.ru>
- LibRaw 0.21-Release
+  * Better handling of memory allocation errors in unpack_thumb()
 
- * Multiple fixes inspired by oss-fuzz project
+  * Support for 8bit/Monochrome DNG Previews
+
+  * Placeholder for DNG/YCC preview decoding: such previews are recorded
+    by Samsung S21 Ultra smartfone, while all present samples contains
+    broken data; Right now 'no preview' returned for such files.
+
+  * Support for BW bitmap previews in LibRaw::dcraw_thumb_writer
+
+  * Phase One: explicitly switch to monochrome mode if firmware string
+    contains 'Achromatic' word
+
+  * tiff parser: check for IFD offset before parsing it
+
+  * LibRaw::thumbOK(): return 0 for YCbCr thumbnails (because
+    unpack_thumb() will always return error: no correct thumbnails
+    with this format found in the image samples yet)
+
+  * Improved Sigma X3F files model recognition
+
+ == Bug/problem fixes ==
+  * Fix for PanasonicV8 decoder compile with OpenMP
+  * Fix for incorrect 32-bit shift in Pana8 decoder generated by gcc11+
+  * DNG SDK Integration: clear imdata.color.linear_max[] if Stage3 opcodes are applied.
+  * Fixed possible buffer overrun in LibRaw::remove_trailing_spaces call
+  * CR3 decoder: workaround for possible incorrect generation of 64-bit code
+  * Improved Sony metadata processing
+  * fixed possible static table read overrun (if specially crafted image
+    data passed to LibRaw)
+  * Fix for monochrome DNG files compressed as 2-color component LJPEG
+  * Fixed integer overflow in largest DNG frame selection code
+  * Additional out-of range checks to better handle specially crafted files
+  * Prevent out-of-buffer access in phase_one_correct()
+  * Prevent one-off read in Fuji WB table parsing
+  * Prevent one-off read in phase_one_correct()
+  * Do not apply Canon metadata crop values to DNG files
+  * Adjust profile_length to allocated data size.
+  * libraw_dng_stream: underlying LibRaw_abstract_datastream buffering restored in
+     destructor call.
+  * Fixed possible buffer overrun in old panasonic decoder
 
 2022-07-01  Alex Tutubalin <lexa@lexa.ru>
 
- LibRaw 0.21-Beta1
+ LibRaw 0.21
 
  == Camera format support ==
  * Phase One/Leaf IIQ-S v2 support
@@ -60,7 +444,11 @@
 
   Notes:
     -  Only TIFF-based and CR3 files are parsed for thumbnail list, other formats will have
-       thumbcount = 1 (or 0 if no thumbnail found in file).
+       thumbcount = 1.
+
+    - If no thumbnails are found in file: thumbcount will be set to 1 and
+      thumblist[0] will be initialized with data from thumbnail fields, 
+      so LibRaw::unpack_thumb_ex(0) will do the same as LibRaw::unpack_thumb()
 
     -  Thumbnail image size may be unknown (not recorded in metadata), in this case twidth and theight are zero.
        Usually small(er) thumbnails will always have twidth/theight filled, while largest one may have these fields set to zero.

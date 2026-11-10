@@ -16,10 +16,9 @@
 
 #if ILMTHREAD_SEMAPHORE_OSX
 
-#include "Iex.h"
+#    include "Iex.h"
 
 ILMTHREAD_INTERNAL_NAMESPACE_SOURCE_ENTER
-
 
 Semaphore::Semaphore (unsigned int value)
 {
@@ -30,12 +29,10 @@ Semaphore::Semaphore (unsigned int value)
         post ();
 }
 
-
 Semaphore::~Semaphore ()
 {
     dispatch_release (_semaphore);
 }
-
 
 void
 Semaphore::wait ()
@@ -43,20 +40,17 @@ Semaphore::wait ()
     dispatch_semaphore_wait (_semaphore, DISPATCH_TIME_FOREVER);
 }
 
-
 bool
 Semaphore::tryWait ()
 {
     return dispatch_semaphore_wait (_semaphore, DISPATCH_TIME_NOW) == 0;
 }
 
-
 void
 Semaphore::post ()
 {
     dispatch_semaphore_signal (_semaphore);
 }
-
 
 int
 Semaphore::value () const
@@ -65,7 +59,6 @@ Semaphore::value () const
 
     return 0;
 }
-
 
 ILMTHREAD_INTERNAL_NAMESPACE_SOURCE_EXIT
 

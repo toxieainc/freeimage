@@ -92,6 +92,11 @@ FreeImage_CloneTag(FITAG *tag) {
 		FITAGHEADER *src_tag = (FITAGHEADER *)tag->data;
 		FITAGHEADER *dst_tag = (FITAGHEADER *)clone->data;
 
+		// a tag with a length must have a value to copy (CVE-2021-40264)
+		if((src_tag->length > 0) && !src_tag->value) {
+			throw FI_MSG_ERROR_PARSING;
+		}
+
 		// tag ID
 		dst_tag->id = src_tag->id;
 		// tag key

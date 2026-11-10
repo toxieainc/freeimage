@@ -26,11 +26,24 @@
 /* Unsigned 64-bit type */
 #define TIFF_UINT64_T uint64_t
 
-/* Unsigned size type formatter */
-#define TIFF_SIZE_FORMAT "%u"
+/* printf length/conversion specifiers (WITHOUT the leading '%': libtiff uses
+   them as "%" TIFF_SSIZE_FORMAT) */
+#include <inttypes.h>
 
-/* Signed size type formatter */
-#define TIFF_SSIZE_FORMAT "%d"
+/* Unsigned size type (size_t) formatter */
+#if defined(__MINGW32__)
+#  if defined(_WIN64)
+#    define TIFF_SIZE_FORMAT PRIu64
+#  else
+#    define TIFF_SIZE_FORMAT PRIu32
+#  endif
+#else
+#  define TIFF_SIZE_FORMAT "zu"
+#endif
+
+/* Signed size type (tmsize_t) formatter.
+   FreeImage's tiffconf.h always defines TIFF_SSIZE_T (tmsize_t) as int64_t */
+#define TIFF_SSIZE_FORMAT PRId64
 
 /* check for 32-bit or 64-bit CPU */
 #include <stdint.h>

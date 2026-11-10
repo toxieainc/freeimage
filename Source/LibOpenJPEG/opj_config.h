@@ -1,9 +1,17 @@
-#ifndef OPJ_CONFIG_H
-#define OPJ_CONFIG_H
+#ifndef OPJ_CONFIG_H_INCLUDED
+#define OPJ_CONFIG_H_INCLUDED
 
-#ifndef _MSC_VER
-#define OPJ_HAVE_STDINT_H
-#define OPJ_HAVE_INTTYPES_H
+/*
+ * FreeImage: static replacement for the CMake generated opj_config.h
+ * (src/lib/openjp2/opj_config.h.cmake.in), OpenJPEG 2.5.4.
+ */
+
+/*--------------------------------------------------------------------------*/
+/* OpenJPEG Versioning                                                      */
+
+/* Version number. */
+#define OPJ_VERSION_MAJOR 2
+#define OPJ_VERSION_MINOR 5
+#define OPJ_VERSION_BUILD 4
+
 #endif
-
-#endif /* OPJ_CONFIG_H */

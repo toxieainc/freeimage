@@ -778,11 +778,15 @@ int psdThumbnail::Read(FreeImageIO *io, fi_handle handle, int iResourceSize, boo
 
 	if(_dib) {
 		FreeImage_Unload(_dib);
+		_dib = NULL;
 	}
 
 	if(_Format == 1) {
 		// kJpegRGB thumbnail image
 		_dib = FreeImage_LoadFromHandle(FIF_JPEG, io, handle);
+		if(!_dib) {
+			throw "Invalid PSD thumbnail";
+		}
 		if(isBGR) {
 			SwapRedBlue32(_dib);
 		}
@@ -791,7 +795,20 @@ int psdThumbnail::Read(FreeImageIO *io, fi_handle handle, int iResourceSize, boo
 	}
 	else {
 		// kRawRGB thumbnail image
+		// a source line must hold the pixels which are copied into the dib (CVE-2020-24293)
+		if((_Width <= 0) || (_Height <= 0) || (_BitPerPixel <= 0) || (_WidthBytes <= 0) || ((long long)_WidthBytes * 8 < (long long)_Width * _BitPerPixel)) {
+			throw "Invalid PSD thumbnail";
+		}
 		_dib = FreeImage_Allocate(_Width, _Height, _BitPerPixel);
+		if(!_dib) {
+			throw "Invalid PSD thumbnail";
+		}
+		if(FreeImage_GetBPP(_dib) != (unsigned)_BitPerPixel) {
+			// FreeImage_Allocate falls back to 8-bit for an unknown bit depth
+			FreeImage_Unload(_dib);
+			_dib = NULL;
+			throw "Invalid BPP in PSD thumbnail";
+		}
 		BYTE* dst_line_start = FreeImage_GetScanLine(_dib, _Height - 1);//<*** flipped
 		BYTE* line_start = new BYTE[_WidthBytes];
 		const unsigned dstLineSize = FreeImage_GetPitch(_dib);
@@ -1308,40 +1325,45 @@ void psdParser::ReadImageLine(BYTE* dst, const BYTE* src, unsigned lineSize, uns
 }
 
 void psdParser::UnpackRLE(BYTE* line, const BYTE* rle_line, BYTE* line_end, unsigned srcSize) {
-	while (srcSize > 0) {
+	// never read more than srcSize bytes from rle_line and never write behind line_end
+	// (CVE-2020-24294, CVE-2020-24295)
+	while ((srcSize > 0) && (line < line_end)) {
 
-		int len = *rle_line++;
+		const unsigned len_byte = *rle_line++;
 		srcSize--;
 
 		// NOTE len is signed byte in PackBits RLE
 
-		if ( len < 128 ) { //<- MSB is not set
+		if ( len_byte < 128 ) { //<- MSB is not set
 			// uncompressed packet
 
 			// (len + 1) bytes of data are copied
-			++len;
+			const unsigned len = MIN(len_byte + 1, srcSize);
+			const unsigned count = MIN(len, (unsigned)(line_end - line));
 
-			// assert we don't write beyound eol
-			memcpy(line, rle_line, line + len > line_end ? line_end - line : len);
-			line += len;
+			memcpy(line, rle_line, count);
+			line += count;
 			rle_line += len;
 			srcSize -= len;
 		}
-		else if ( len > 128 ) { //< MSB is set
+		else if ( len_byte > 128 ) { //< MSB is set
 			// RLE compressed packet
+			if (srcSize == 0) {
+				// the value byte is missing
+				break;
+			}
 
-			// One byte of data is repeated (–len + 1) times
+			// One byte of data is repeated (-len + 1) times
 
-			len ^= 0xFF; // same as (-len + 1) & 0xFF
-			len += 2;    //
+			const unsigned len = (len_byte ^ 0xFF) + 2; // same as (-len + 1) & 0xFF
+			const unsigned count = MIN(len, (unsigned)(line_end - line));
 
-			// assert we don't write beyound eol
-			memset(line, *rle_line++, line + len > line_end ? line_end - line : len);
-			line += len;
+			memset(line, *rle_line++, count);
+			line += count;
 			srcSize--;
 		}
-		else if ( 128 == len ) {
-			// Do nothing
+		else {
+			// 128 == len : Do nothing
 		}
 	}//< rle_line
 }
@@ -1375,6 +1397,24 @@ FIBITMAP* psdParser::ReadImageData(FreeImageIO *io, fi_handle handle) {
 	const unsigned nChannels = _headerInfo._Channels;
 	const unsigned depth = _headerInfo._BitsPerChannel;
 	const unsigned bytes = (depth == 1) ? 1 : depth / 8;
+
+	// check the header values (https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/)
+	// (CVE-2020-24293, CVE-2020-24294, CVE-2020-24295)
+	if((_headerInfo._Channels < 1) || (_headerInfo._Channels > 56)) {
+		throw "Invalid channels value in PSD header";
+	}
+	if((_headerInfo._Width < 1) || (_headerInfo._Height < 1) || (_headerInfo._Width > 300000) || (_headerInfo._Height > 300000)) {
+		throw "Invalid width or height value in PSD header";
+	}
+	switch(depth) {
+		case 1:
+		case 8:
+		case 16:
+		case 32:
+			break;
+		default:
+			throw "Invalid depth value in PSD header";
+	}
 
 	// channel(plane) line (BYTE aligned)
 	const unsigned lineSize = (_headerInfo._BitsPerChannel == 1) ? (nWidth + 7) / 8 : nWidth * bytes;
@@ -1462,6 +1502,12 @@ FIBITMAP* psdParser::ReadImageData(FreeImageIO *io, fi_handle handle) {
 	const unsigned dstBpp =  (depth == 1) ? 1 : FreeImage_GetBPP(bitmap)/8;
 	const unsigned dstLineSize = FreeImage_GetPitch(bitmap);
 	BYTE* const dst_first_line = FreeImage_GetScanLine(bitmap, nHeight - 1);//<*** flipped
+
+	if((dstBpp == 0) || (lineSize > dstLineSize)) {
+		// a source line does not fit into a dib line
+		FreeImage_Unload(bitmap);
+		throw "Invalid source size";
+	}
 
 	BYTE* line_start = new BYTE[lineSize]; //< fileline cache
 

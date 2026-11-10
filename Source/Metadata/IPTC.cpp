@@ -114,6 +114,10 @@ read_iptc_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) {
 
 		// allocate a buffer to store the tag value
 		BYTE *iptc_value = (BYTE*)malloc((tagByteCount + 1) * sizeof(BYTE));
+		if(!iptc_value) {
+			// out of memory
+			break;
+		}
 		memset(iptc_value, 0, (tagByteCount + 1) * sizeof(BYTE));
 
 		// get the tag value
@@ -125,7 +129,10 @@ read_iptc_profile(FIBITMAP *dib, const BYTE *dataptr, unsigned int datalen) {
 				FreeImage_SetTagType(tag, FIDT_SSHORT);
 				FreeImage_SetTagCount(tag, 1);
 				short *pvalue = (short*)&iptc_value[0];
-				*pvalue = (short)((profile[offset] << 8) | profile[offset + 1]);
+				// the value is two bytes wide; a shorter tag has no second byte to read (CVE-2024-9029, CVE-2024-28568)
+				if(tagByteCount >= 2) {
+					*pvalue = (short)((profile[offset] << 8) | profile[offset + 1]);
+				}
 				FreeImage_SetTagValue(tag, pvalue);
 				break;
 			}

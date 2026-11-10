@@ -40,8 +40,6 @@
 
 #include "tif_fax3.h"
 
-#define streq(a, b) (strcmp(a, b) == 0)
-
 /* NB: can't use names in tif_fax3.h 'cuz they are declared const */
 TIFFFaxTabEnt MainTable[128];
 TIFFFaxTabEnt WhiteTable[4096];
@@ -142,24 +140,25 @@ static void FillTable(TIFFFaxTabEnt *T, int Size, struct proto *P, int State)
         for (code = P->code; code < limit; code += incr)
         {
             TIFFFaxTabEnt *E = T + code;
-            E->State = State;
-            E->Width = width;
-            E->Param = param;
+            E->State = (unsigned char)State;
+            E->Width = (unsigned char)width;
+            E->Param = (uint32_t)param;
         }
         P++;
     }
 }
 
-static char *storage_class = "";
-static char *const_class = "";
+static const char *storage_class = "";
+static const char *const_class = "";
 static int packoutput = 1;
-static char *prebrace = "";
-static char *postbrace = "";
+static const char *prebrace = "";
+static const char *postbrace = "";
 
-void WriteTable(FILE *fd, const TIFFFaxTabEnt *T, int Size, const char *name)
+static void WriteTable(FILE *fd, const TIFFFaxTabEnt *T, int Size,
+                       const char *name)
 {
     int i;
-    char *sep;
+    const char *sep;
 
     fprintf(fd, "%s %s TIFFFaxTabEnt %s[%d] = {", storage_class, const_class,
             name, Size);
@@ -198,7 +197,7 @@ void WriteTable(FILE *fd, const TIFFFaxTabEnt *T, int Size, const char *name)
 int main(int argc, char *argv[])
 {
     FILE *fd;
-    char *outputfile;
+    const char *outputfile;
     int c;
 
 #if !HAVE_DECL_OPTARG
@@ -227,6 +226,8 @@ int main(int argc, char *argv[])
                         "usage: %s [-c const] [-s storage] [-p] [-b] file\n",
                         argv[0]);
                 return (-1);
+            default:
+                break;
         }
     outputfile = optind < argc ? argv[optind] : "g3states.h";
     fd = fopen(outputfile, "w");

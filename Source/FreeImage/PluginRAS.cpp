@@ -233,6 +233,11 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			throw FI_MSG_ERROR_MAGIC_NUMBER;
 		}
 
+		// the pixel loops and the line length use 16-bit counters (CVE-2024-28578, CVE-2024-28580)
+		if ((header.width == 0) || (header.height == 0) || (header.width > 65500) || (header.height > 65500)) {
+			throw FI_MSG_ERROR_DIB_MEMORY;
+		}
+
 		// Allocate a new DIB
 
 		switch(header.depth) {
@@ -308,21 +313,32 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 				// Read SUN raster colormap
 
+				RGBQUAD *pal = FreeImage_GetPalette(dib);
+				if((header.depth > 8) || (pal == NULL)) {
+					// only a palettized image has a colormap
+					throw "Invalid palette";
+				}
+
 				int numcolors = 1 << header.depth;
 				if((DWORD)(3 * numcolors) > header.maplength) {
 					// some RAS may have less colors than the full palette
 					numcolors = header.maplength / 3;
-				} else {
-					throw "Invalid palette";
 				}
 
-				r = (BYTE*)malloc(3 * numcolors * sizeof(BYTE));
+				r = (BYTE*)malloc(3 * numcolors * sizeof(BYTE) + 1);
+				if(r == NULL) {
+					throw FI_MSG_ERROR_MEMORY;
+				}
 				g = r + numcolors;
 				b = g + numcolors;
 
-				RGBQUAD *pal = FreeImage_GetPalette(dib);
-
-				io->read_proc(r, 3 * numcolors, 1, handle);
+				if(numcolors > 0) {
+					io->read_proc(r, 3 * numcolors, 1, handle);
+				}
+				// skip the part of the colormap which is not used
+				if(header.maplength > (DWORD)(3 * numcolors)) {
+					io->seek_proc(handle, (long)(header.maplength - (DWORD)(3 * numcolors)), SEEK_CUR);
+				}
 
 				for (int i = 0; i < numcolors; i++) {
 					pal[i].rgbRed	= r[i];
@@ -336,15 +352,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			case RMT_RAW:
 			{
-				BYTE *colormap;
+				// Skip SUN raster colormap (no allocation of an untrusted size)
 
-				// Read (skip) SUN raster colormap.
-
-				colormap = (BYTE *)malloc(header.maplength * sizeof(BYTE));
-
-				io->read_proc(colormap, header.maplength, 1, handle);
-
-				free(colormap);
+				io->seek_proc(handle, (long)header.maplength, SEEK_CUR);
 				break;
 			}
 		}
@@ -392,7 +402,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			{
 				BYTE *buf, *bp;
 
-				buf = (BYTE*)malloc(header.width * 3);
+				buf = (BYTE*)malloc((size_t)header.width * 3);
 
 				for (y = 0; y < header.height; y++) {
 					bits = FreeImage_GetBits(dib) + (header.height - 1 - y) * pitch;
@@ -432,7 +442,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			{
 				BYTE *buf, *bp;
 
-				buf = (BYTE*)malloc(header.width * 4);
+				buf = (BYTE*)malloc((size_t)header.width * 4);
 
 				for (y = 0; y < header.height; y++) {
 					bits = FreeImage_GetBits(dib) + (header.height - 1 - y) * pitch;

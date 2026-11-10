@@ -444,8 +444,8 @@ static FIBITMAP*
 CreateImageType(BOOL header_only, FREE_IMAGE_TYPE fit, int width, int height, uint16_t bitspersample, uint16_t samplesperpixel) {
 	FIBITMAP *dib = NULL;
 
-	if((width < 0) || (height < 0)) {
-		// check for malicious images
+	if((width < 0) || (height < 0) || (samplesperpixel > 4)) {
+		// check for malicious images (CVE-2021-40266)
 		return NULL;
 	}
 
@@ -784,12 +784,13 @@ tiff_read_iptc_profile(TIFF *tiff, FIBITMAP *dib) {
 	BYTE *profile = NULL;
 	uint32_t profile_size = 0;
 
+	// LibTIFF reads TIFFTAG_RICHTIFFIPTC as an array of bytes (TIFF_SETGET_C32_UINT8):
+	// profile_size is the size in bytes and the data must not be byte-swapped (CVE-2024-28568, CVE-2024-9029)
     if(TIFFGetField(tiff,TIFFTAG_RICHTIFFIPTC, &profile_size, &profile) == 1) {
-		if (TIFFIsByteSwapped(tiff) != 0) {
-			TIFFSwabArrayOfLong((uint32_t *) profile, (unsigned long)profile_size);
+		if (!profile || (profile_size == 0)) {
+			return FALSE;
 		}
-
-		return read_iptc_profile(dib, profile, 4 * profile_size);
+		return read_iptc_profile(dib, profile, profile_size);
 	}
 
 	return FALSE;
@@ -894,8 +895,8 @@ tiff_write_iptc_profile(TIFF *tiff, FIBITMAP *dib) {
 		uint32_t profile_size = 0;
 		// create a binary profile
 		if(write_iptc_profile(dib, &profile, &profile_size)) {
-			uint32_t iptc_size = profile_size;
-			iptc_size += (4-(iptc_size & 0x03)); // Round up for long word alignment
+			// round up for long word alignment
+			const uint32_t iptc_size = (profile_size + 3) & ~(uint32_t)3;
 			BYTE *iptc_profile = (BYTE*)malloc(iptc_size);
 			if(!iptc_profile) {
 				free(profile);
@@ -903,11 +904,9 @@ tiff_write_iptc_profile(TIFF *tiff, FIBITMAP *dib) {
 			}
 			memset(iptc_profile, 0, iptc_size);
 			memcpy(iptc_profile, profile, profile_size);
-			if (TIFFIsByteSwapped(tiff)) {
-				TIFFSwabArrayOfLong((uint32_t *) iptc_profile, (unsigned long)iptc_size/4);
-			}
-			// Tag is type TIFF_LONG so byte length is divided by four
-			TIFFSetField(tiff, TIFFTAG_RICHTIFFIPTC, iptc_size/4, iptc_profile);
+			// LibTIFF writes TIFFTAG_RICHTIFFIPTC as an array of bytes (TIFF_SETGET_C32_UINT8):
+			// the count is the size in bytes and the data must not be byte-swapped
+			TIFFSetField(tiff, TIFFTAG_RICHTIFFIPTC, iptc_size, iptc_profile);
 			// release the profile data
 			free(iptc_profile);
 			free(profile);
@@ -1146,8 +1145,8 @@ check for uncommon bitspersample values (e.g. 10, 12, ...)
 @param samplesperpixel TIFFTAG_SAMPLESPERPIXEL tiff tag
 @return Returns FALSE if a uncommon bit-depth is encountered, returns TRUE otherwise
 */
-static BOOL 
-IsValidBitsPerSample(uint16_t photometric, uint16_t bitspersample, uint16_t samplesperpixel) {
+static BOOL
+IsValidBitsPerSample(uint16_t photometric, uint16_t bitspersample, uint16_t samplesperpixel, uint16_t sampleformat) {
 	// get the pixel depth in bits
 	const uint16_t pixel_depth = bitspersample * samplesperpixel;
 
@@ -1182,16 +1181,20 @@ IsValidBitsPerSample(uint16_t photometric, uint16_t bitspersample, uint16_t samp
 		case 8:
 			return TRUE;
 		case 16:
-			if(photometric != PHOTOMETRIC_PALETTE) { 
+			if((photometric == PHOTOMETRIC_SEPARATED) && (sampleformat == SAMPLEFORMAT_IEEEFP)) {
+				// there is no float CMYK image, a CMYK image is 8 or 16 bit unsigned integer
+				return FALSE;
+			}
+			if(photometric != PHOTOMETRIC_PALETTE) {
 				return TRUE;
 			} else {
 				return FALSE;
 			}
 			break;
 		case 32:
-			if((photometric == PHOTOMETRIC_MINISWHITE) || (photometric == PHOTOMETRIC_MINISBLACK) || (photometric == PHOTOMETRIC_LOGLUV)) { 
+			if((photometric == PHOTOMETRIC_MINISWHITE) || (photometric == PHOTOMETRIC_MINISBLACK) || (photometric == PHOTOMETRIC_LOGLUV)) {
 				return TRUE;
-			} else if((photometric == PHOTOMETRIC_RGB) && (samplesperpixel == 3) || (samplesperpixel == 4)) {
+			} else if((photometric == PHOTOMETRIC_RGB) && ((samplesperpixel == 3) || (samplesperpixel == 4))) {
 				// RGB[A]F
 				return TRUE;
 			} else {
@@ -1422,8 +1425,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	uint16_t planar_config;
 
 	FIBITMAP *dib = NULL;
-	uint32_t iccSize = 0;		// ICC profile length
-	void *iccBuf = NULL;	// ICC profile data		
+	BOOL iccInvalid = FALSE;	// TRUE when the ICC profile does not match the loaded pixels
 
 	const BOOL header_only = (flags & FIF_LOAD_NOPIXELS) == FIF_LOAD_NOPIXELS;
 	
@@ -1463,14 +1465,21 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
 		TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
 		TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
-		TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);   			
-		TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
+		TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);
 		TIFFGetFieldDefaulted(tif, TIFFTAG_PLANARCONFIG, &planar_config);
+
+		if(samplesperpixel == 1) {
+			// the planar configuration is irrelevant with one sample per pixel
+			planar_config = PLANARCONFIG_CONTIG;
+		}
 
 		// check for unsupported formats
 		// ---------------------------------------------------------------------------------
 
-		if(IsValidBitsPerSample(photometric, bitspersample, samplesperpixel) == FALSE) {
+		uint16_t sampleformat = SAMPLEFORMAT_UINT;
+		TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
+
+		if(IsValidBitsPerSample(photometric, bitspersample, samplesperpixel, sampleformat) == FALSE) {
 			FreeImage_OutputMessageProc(s_format_id, 
 				"Unable to handle this format: bitspersample = %d, samplesperpixel = %d, photometric = %d", 
 				(int)bitspersample, (int)samplesperpixel, (int)photometric);
@@ -1504,7 +1513,11 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 
 			if(!header_only) {
 
-				raster = (uint32_t*)_TIFFmalloc(width * height * sizeof(uint32_t));
+				// width * height may not fit into 32 bits
+				if ((height != 0) && ((size_t)width > ((size_t)-1 / sizeof(uint32_t)) / (size_t)height)) {
+					throw FI_MSG_ERROR_MEMORY;
+				}
+				raster = (uint32_t*)_TIFFmalloc((tmsize_t)((size_t)width * (size_t)height * sizeof(uint32_t)));
 				if (raster == NULL) {
 					throw FI_MSG_ERROR_MEMORY;
 				}
@@ -1780,7 +1793,29 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				const unsigned Bpc = dibBpp / chCount;
 				const unsigned srcBpp = bitspersample * samplesperpixel / 8;
 
-				assert(Bpc <= 2); //< CMYK is only BYTE or SHORT 
+				assert(Bpc <= 2); //< CMYK is only BYTE or SHORT
+
+				if(planar_config == PLANARCONFIG_CONTIG) {
+					// a DIB pixel larger than a source pixel makes the loops below read past the end of the strip buffer
+					// (e.g. 3 x half float stored as RGBF, CVE-2024-28566)
+					if(dibBpp > srcBpp) {
+						FreeImage_Unload(alpha);
+						throw "Unsupported number of samples or bits per sample";
+					}
+					// the extra alpha channel is read behind the DIB pixel
+					if(alpha && (dibBpp + Bpc > srcBpp)) {
+						FreeImage_Unload(alpha);
+						throw "Unsupported number of samples or bits per sample";
+					}
+				}
+				else if(planar_config == PLANARCONFIG_SEPARATE) {
+					// with separate planes a channel of the DIB must be exactly as wide as a source sample,
+					// otherwise the loops below write past the end of the DIB lines
+					if((Bpc == 0) || (Bpc * 8 != bitspersample)) {
+						FreeImage_Unload(alpha);
+						throw "Unsupported number of samples or bits per sample";
+					}
+				}
 				
 				// In the tiff file the lines are save from up to down 
 				// In a DIB the lines must be saved from down to up
@@ -1927,10 +1962,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			
 				if(!asCMYK) {
 					ConvertCMYKtoRGBA(dib);
-					
+
 					// The ICC Profile is invalid, clear it
-					iccSize = 0;
-					iccBuf = NULL;
+					iccInvalid = TRUE;
 					
 					if(isCMYKA) {
 						// HACK until we have Extra channels. (ConvertCMYKtoRGBA will then do the work)
@@ -2018,8 +2052,15 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 							}
 						}
 						else {
+							// a DIB pixel larger than a source pixel makes the loop below read past the end of the strip buffer
+							// (e.g. 3 x half float stored as RGBF, CVE-2024-28566)
+							if((Bpp == 0) || (Bpp > srcBpp)) {
+								free(buf);
+								throw "Unsupported number of samples or bits per sample";
+							}
 							for (int l = 0; l < strips; l++) {
-								for(BYTE *pixel = bits, *src_pixel =  buf + l * src_line; pixel < bits + dst_pitch; pixel += Bpp, src_pixel += srcBpp) {
+								// only the pixels of the line are assigned, the padding of the DIB line is left as is
+								for(BYTE *pixel = bits, *src_pixel =  buf + l * src_line; pixel + Bpp <= bits + dst_line; pixel += Bpp, src_pixel += srcBpp) {
 									AssignPixel(pixel, src_pixel, Bpp);
 								}
 								bits -= dst_pitch;
@@ -2030,6 +2071,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				else if(planar_config == PLANARCONFIG_SEPARATE) {
 					
 					const unsigned Bpc = bitspersample / 8;
+
+					// a sample must be a whole number of bytes (CVE-2023-47997)
+					// and all the channels must fit into a DIB pixel (CVE-2024-28566)
+					if((bitspersample < 8) || (bitspersample % 8 != 0) || (chCount * Bpc > Bpp)) {
+						free(buf);
+						throw "Unsupported number of samples or bits per sample";
+					}
+
 					BYTE* dib_strip = bits;
 					// - loop for strip blocks -
 					
@@ -2115,6 +2164,9 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			if(!TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth) || !TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileHeight)) {
 				throw "Invalid tiled TIFF image";
 			}
+			if((tileWidth == 0) || (tileHeight == 0)) {
+				throw "Invalid tiled TIFF image";
+			}
 
 			// read the tiff lines and save them in the DIB
 
@@ -2134,6 +2186,11 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 				uint32_t tileRowSize = (uint32_t)TIFFTileRowSize(tif);
 				uint32_t imageRowSize = (uint32_t)TIFFScanlineSize(tif);
 
+				// the tiles are copied as bytes into the DIB lines: a source line must fit into a DIB line
+				if((tileRowSize == 0) || (imageRowSize > dst_pitch)) {
+					free(tileBuffer);
+					throw "Unsupported number of samples or bits per sample";
+				}
 
 				// In the tiff file the lines are saved from up to down 
 				// In a DIB the lines must be saved from down to up
@@ -2157,10 +2214,14 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 						} else {
 							src_line = tileRowSize;
 						}
+						if(rowSize >= imageRowSize) {
+							// should not happen: the tile starts behind the end of the line
+							break;
+						}
 						BYTE *src_bits = tileBuffer;
 						BYTE *dst_bits = bits + rowSize;
 						for(int k = 0; k < nrows; k++) {
-							memcpy(dst_bits, src_bits, MIN(dst_pitch, src_line));
+							memcpy(dst_bits, src_bits, MIN(dst_pitch - rowSize, src_line));
 							src_bits += tileRowSize;
 							dst_bits -= dst_pitch;
 						}
@@ -2193,6 +2254,10 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			dib = CreateImageType(header_only, image_type, width, height, bitspersample, samplesperpixel);
 			if (dib == NULL) {
 				throw FI_MSG_ERROR_MEMORY;
+			}
+			if (FreeImage_GetImageType(dib) != FIT_RGBF) {
+				// tiff_ConvertLineXYZToRGB writes RGBF pixels
+				throw "Unsupported number of samples or bits per sample";
 			}
 
 			// fill in the resolution (english or universal)
@@ -2317,13 +2382,22 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			throw FI_MSG_ERROR_UNSUPPORTED_FORMAT;
 		}
 		
+		// copy ICC profile data (must be done after FreeImage_Allocate).
+		// This must be done before ReadMetadata: reading the thumbnail changes the current directory,
+		// which releases the ICC buffer owned by LibTIFF (CVE-2024-28567)
+
+		if (!iccInvalid) {
+			uint32_t iccSize = 0;	// ICC profile length
+			void *iccBuf = NULL;	// ICC profile data
+			if (TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf) && iccBuf && (iccSize > 0)) {
+				FreeImage_CreateICCProfile(dib, iccBuf, iccSize);
+			}
+		}
+
 		// copy TIFF metadata (must be done after FreeImage_Allocate)
 
 		ReadMetadata(io, handle, tif, dib);
 
-		// copy ICC profile data (must be done after FreeImage_Allocate)
-		
-		FreeImage_CreateICCProfile(dib, iccBuf, iccSize);
 		if (photometric == PHOTOMETRIC_SEPARATED) {
 			if (asCMYK) {
 				// set the ICC profile as CMYK
@@ -2579,7 +2653,7 @@ SaveOneTIFF(FreeImageIO *io, FIBITMAP *dib, fi_handle handle, int page, int flag
 						// get the transparency table
 						BYTE *trns = FreeImage_GetTransparencyTable(dib);
 
-						BYTE *buffer = (BYTE *)malloc(2 * width * sizeof(BYTE));
+						BYTE *buffer = (BYTE *)malloc((size_t)width * 2 * sizeof(BYTE));
 						if(buffer == NULL) {
 							throw FI_MSG_ERROR_MEMORY;
 						}
